@@ -58,7 +58,7 @@ class NerfModel(nn.Module):
   legacy_posenc_order: bool  # Keep the same ordering as the original tf code.
 
   @nn.compact
-  def __call__(self, rng_0, rng_1, rays, randomized):
+  def __call__(self, rng_0, rng_1, rays, voxel, len_inp, randomized):
     """Nerf Model.
 
     Args:
@@ -85,6 +85,10 @@ class NerfModel(nn.Module):
 
     batch_size, num_samples = samples.shape[:-1]
     samples = samples.reshape(-1, 3)
+
+    pts= jnp.digitize(samples, jnp.linspace(self.near, self.far, voxel.shape[0]))
+    mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
+    ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inp])
 
     samples_enc = model_utils.posenc(
         samples,
@@ -114,9 +118,14 @@ class NerfModel(nn.Module):
       )
       viewdirs_enc = jnp.tile(viewdirs_enc_[:, None, :], (1, num_samples, 1))
       viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
-      raw_rgb, raw_sigma = coarse_mlp(samples_enc, viewdirs_enc)
+      raw_rgb, raw_sigma = coarse_mlp(samples_enc[ind_inp], viewdirs_enc[ind_inp])
     else:
       raise NotImplementedError("deleted")
+
+    ind = jnp.argsort(jnp.concatenate([ind_inp, ind_bak]))
+    len_pad = batch_size * num_samples - len_inp
+    raw_rgb = jnp.vstack([raw_rgb, jnp.zeros([len_pad, 3])])[ind] * mask[:, None]
+    raw_sigma = jnp.vstack([raw_sigma, jnp.zeros([len_pad, 1])])[ind] * mask[:, None]
 
     raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
     raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
@@ -162,6 +171,10 @@ class NerfModel(nn.Module):
       batch_size, num_samples = samples.shape[:-1]
       samples = samples.reshape(-1, 3)
 
+      pts= jnp.digitize(samples, jnp.linspace(self.near, self.far, voxel.shape[0]))
+      mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
+      ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inp])
+
       samples_enc = model_utils.posenc(
           samples,
           self.min_deg_point,
@@ -183,9 +196,14 @@ class NerfModel(nn.Module):
       if self.use_viewdirs:
         viewdirs_enc = jnp.tile(viewdirs_enc_[:, None, :], (1, num_samples, 1))
         viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
-        raw_rgb, raw_sigma = fine_mlp(samples_enc, viewdirs_enc)
+        raw_rgb, raw_sigma = fine_mlp(samples_enc[ind_inp], viewdirs_enc[ind_inp])
       else:
         raise NotImplementedError("deleted")
+
+      ind = jnp.argsort(jnp.concatenate([ind_inp, ind_bak]))
+      len_pad = batch_size * num_samples - len_inp
+      raw_rgb = jnp.vstack([raw_rgb, jnp.zeros([len_pad, 3])])[ind] * mask[:, None]
+      raw_sigma = jnp.vstack([raw_sigma, jnp.zeros([len_pad, 1])])[ind] * mask[:, None]
 
       raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
       raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
@@ -275,6 +293,8 @@ def construct_nerf(key, example_batch, args):
       rng_0=key2,
       rng_1=key3,
       rays=utils.namedtuple_map(lambda x: x[0], rays),
+      voxel=jnp.load(args.voxel_path).astype(jnp.float32),
+      len_inp=args.len_inp_train,
       randomized=args.randomized)
 
   return model, init_variables

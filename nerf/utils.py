@@ -178,6 +178,9 @@ def define_flags():
       "the size of chunks for evaluation inferences, set to the value that"
       "fits your GPU/TPU memory.")
 
+  flags.DEFINE_integer("len_inp_train", 2**15, "input size of MLP for train")
+  flags.DEFINE_integer("len_inp_eval", 2**19, "input size of MLP for eval")
+  flags.DEFINE_string("voxel_path", None, "voxel file path")
 
 def update_flags(args):
   """Update the flags in `args` with the contents of the config YAML file."""

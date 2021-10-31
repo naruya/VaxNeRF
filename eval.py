@@ -25,6 +25,8 @@ from flax.metrics import tensorboard
 from flax.training import checkpoints
 import jax
 from jax import random
+from jax import device_put
+import jax.numpy as jnp
 import numpy as np
 import tensorflow as tf
 import tensorflow_hub as tf_hub
@@ -48,11 +50,11 @@ utils.define_flags()
 #       tf.convert_to_tensor(image2[None, Ellipsis]))[0]
 
 
-def render_fn(model, variables, key_0, key_1, rays):
+def render_fn(model, variables, key_0, key_1, rays, voxel, len_inp):
   # Rendering is forced to be deterministic even if training was randomized, as
   # this eliminates "speckle" artifacts.
   return jax.lax.all_gather(
-      model.apply(variables, key_0, key_1, rays, False),
+      model.apply(variables, key_0, key_1, rays, voxel, len_inp, False),
       axis_name="batch")
 
 
@@ -78,11 +80,13 @@ def main(unused_argv):
   state = utils.TrainState(optimizer=optimizer)
   del optimizer, init_variables
 
+  voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
+
   # lpips_model = tf_hub.load(LPIPS_TFHUB_PATH)
 
   # pmap over only the data input.
   render_pfn = jax.pmap(
-      functools.partial(render_fn, model),
+      functools.partial(render_fn, model, voxel=voxel, len_inp=FLAGS.len_inp_eval),
       axis_name="batch",
       in_axes=(None, None, None, 0),
       donate_argnums=(3,))

@@ -27,6 +27,7 @@ from flax.training import checkpoints
 import jax
 from jax import config
 from jax import random
+from jax import device_put
 import jax.numpy as jnp
 import numpy as np
 
@@ -40,7 +41,7 @@ utils.define_flags()
 config.parse_flags_with_absl()
 
 
-def train_step(model, rng, state, batch, lr):
+def train_step(model, rng, state, batch, lr, voxel, len_inp):
   """One optimization step.
 
   Args:
@@ -59,7 +60,7 @@ def train_step(model, rng, state, batch, lr):
 
   def loss_fn(variables):
     rays = batch["rays"]
-    ret = model.apply(variables, key_0, key_1, rays, FLAGS.randomized)
+    ret = model.apply(variables, key_0, key_1, rays, voxel, len_inp, FLAGS.randomized)
     if len(ret) not in (1, 2):
       raise ValueError(
           "ret should contain either 1 set of output (coarse only), or 2 sets"
@@ -113,9 +114,9 @@ def train_step(model, rng, state, batch, lr):
   return new_state, stats, rng
 
 
-def render_fn(model, variables, key_0, key_1, rays):
+def render_fn(model, variables, key_0, key_1, rays, voxel, len_inp):
   return jax.lax.all_gather(
-      model.apply(variables, key_0, key_1, rays, FLAGS.randomized),
+      model.apply(variables, key_0, key_1, rays, voxel, len_inp, FLAGS.randomized),
       axis_name="batch")
 
 
@@ -142,6 +143,8 @@ def main(unused_argv):
   state = utils.TrainState(optimizer=optimizer)
   del optimizer, variables
 
+  voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
+
   learning_rate_fn = functools.partial(
       utils.learning_rate_decay,
       lr_init=FLAGS.lr_init,
@@ -151,13 +154,13 @@ def main(unused_argv):
       lr_delay_mult=FLAGS.lr_delay_mult)
 
   train_pstep = jax.pmap(
-      functools.partial(train_step, model),
+      functools.partial(train_step, model, voxel=voxel, len_inp=FLAGS.len_inp_train),
       axis_name="batch",
       in_axes=(0, 0, 0, None),
       donate_argnums=(2,))
 
   render_pfn = jax.pmap(
-      functools.partial(render_fn, model),
+      functools.partial(render_fn, model, voxel=voxel, len_inp=FLAGS.len_inp_eval),
       axis_name="batch",
       in_axes=(None, None, None, 0),  # Only distribute the data input.
       donate_argnums=(3,))
