@@ -26,9 +26,8 @@ import jax.scipy as jsp
 import numpy as np
 from PIL import Image
 import yaml
-from jaxnerf.nerf import datasets
+from nerf import datasets
 
-BASE_DIR = "jaxnerf"
 INTERNAL = False
 
 
@@ -142,6 +141,9 @@ def define_flags():
   flags.DEFINE_float("lr_init", 5e-4, "The initial learning rate.")
   flags.DEFINE_float("lr_final", 5e-6, "The final learning rate.")
   flags.DEFINE_integer(
+      "lr_max_steps", 1000000, "the number of optimization steps."
+      "It is recommended not to change this value for a fair comparison")
+  flags.DEFINE_integer(
       "lr_delay_steps", 0, "The number of steps at the beginning of "
       "training to reduce the learning rate by lr_delay_mult")
   flags.DEFINE_float(
@@ -179,7 +181,7 @@ def define_flags():
 
 def update_flags(args):
   """Update the flags in `args` with the contents of the config YAML file."""
-  pth = path.join(BASE_DIR, args.config + ".yaml")
+  pth = path.join(args.config + ".yaml")
   with open_file(pth, "r") as fin:
     configs = yaml.load(fin, Loader=yaml.FullLoader)
   # Only allow args to be updated if they already exist.

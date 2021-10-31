@@ -42,8 +42,8 @@ class MLP(nn.Module):
     """Evaluate the MLP.
 
     Args:
-      x: jnp.ndarray(float32), [batch, num_samples, feature], points.
-      condition: jnp.ndarray(float32), [batch, feature], if not None, this
+      x: jnp.ndarray(float32), [batch_for_mlp, feature], points.
+      condition: jnp.ndarray(float32), [batch_for_mlp, feature], if not None, this
         variable will be part of the input to the second part of the MLP
         concatenated with the output vector of the first part of the MLP. If
         None, only the first part of the MLP will be used with input x. In the
@@ -51,13 +51,10 @@ class MLP(nn.Module):
 
     Returns:
       raw_rgb: jnp.ndarray(float32), with a shape of
-           [batch, num_samples, num_rgb_channels].
+           [batch_for_mlp, num_rgb_channels].
       raw_sigma: jnp.ndarray(float32), with a shape of
-           [batch, num_samples, num_sigma_channels].
+           [batch_for_mlp, num_sigma_channels].
     """
-    feature_dim = x.shape[-1]
-    num_samples = x.shape[1]
-    x = x.reshape([-1, feature_dim])
     dense_layer = functools.partial(
         nn.Dense, kernel_init=jax.nn.initializers.glorot_uniform())
     inputs = x
@@ -66,26 +63,17 @@ class MLP(nn.Module):
       x = self.net_activation(x)
       if i % self.skip_layer == 0 and i > 0:
         x = jnp.concatenate([x, inputs], axis=-1)
-    raw_sigma = dense_layer(self.num_sigma_channels)(x).reshape(
-        [-1, num_samples, self.num_sigma_channels])
+    raw_sigma = dense_layer(self.num_sigma_channels)(x)
 
     if condition is not None:
       # Output of the first part of MLP.
       bottleneck = dense_layer(self.net_width)(x)
-      # Broadcast condition from [batch, feature] to
-      # [batch, num_samples, feature] since all the samples along the same ray
-      # have the same viewdir.
-      condition = jnp.tile(condition[:, None, :], (1, num_samples, 1))
-      # Collapse the [batch, num_samples, feature] tensor to
-      # [batch * num_samples, feature] so that it can be fed into nn.Dense.
-      condition = condition.reshape([-1, condition.shape[-1]])
       x = jnp.concatenate([bottleneck, condition], axis=-1)
       # Here use 1 extra layer to align with the original nerf model.
       for i in range(self.net_depth_condition):
         x = dense_layer(self.net_width_condition)(x)
         x = self.net_activation(x)
-    raw_rgb = dense_layer(self.num_rgb_channels)(x).reshape(
-        [-1, num_samples, self.num_rgb_channels])
+    raw_rgb = dense_layer(self.num_rgb_channels)(x)
     return raw_rgb, raw_sigma
 
 

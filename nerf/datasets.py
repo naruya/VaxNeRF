@@ -26,7 +26,7 @@ if not INTERNAL:
 import jax
 import numpy as np
 from PIL import Image
-from jaxnerf.nerf import utils
+from nerf import utils
 
 
 def get_dataset(split, args):

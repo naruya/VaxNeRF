@@ -20,8 +20,8 @@ from flax import linen as nn
 from jax import random
 import jax.numpy as jnp
 
-from jaxnerf.nerf import model_utils
-from jaxnerf.nerf import utils
+from nerf import model_utils
+from nerf import utils
 
 
 def get_model(key, example_batch, args):
@@ -82,6 +82,10 @@ class NerfModel(nn.Module):
         randomized,
         self.lindisp,
     )
+
+    batch_size, num_samples = samples.shape[:-1]
+    samples = samples.reshape(-1, 3)
+
     samples_enc = model_utils.posenc(
         samples,
         self.min_deg_point,
@@ -102,15 +106,21 @@ class NerfModel(nn.Module):
 
     # Point attribute predictions
     if self.use_viewdirs:
-      viewdirs_enc = model_utils.posenc(
+      viewdirs_enc_ = model_utils.posenc(
           rays.viewdirs,
           0,
           self.deg_view,
           self.legacy_posenc_order,
       )
+      viewdirs_enc = jnp.tile(viewdirs_enc_[:, None, :], (1, num_samples, 1))
+      viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
       raw_rgb, raw_sigma = coarse_mlp(samples_enc, viewdirs_enc)
     else:
       raw_rgb, raw_sigma = coarse_mlp(samples_enc)
+
+    raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
+    raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
+
     # Add noises to regularize the density predictions if needed
     key, rng_0 = random.split(rng_0)
     raw_sigma = model_utils.add_gaussian_noise(
@@ -121,6 +131,7 @@ class NerfModel(nn.Module):
     )
     rgb = self.rgb_activation(raw_rgb)
     sigma = self.sigma_activation(raw_sigma)
+
     # Volumetric rendering.
     comp_rgb, disp, acc, weights = model_utils.volumetric_rendering(
         rgb,
@@ -132,6 +143,7 @@ class NerfModel(nn.Module):
     ret = [
         (comp_rgb, disp, acc),
     ]
+
     # Hierarchical sampling based on coarse predictions
     if self.num_fine_samples > 0:
       z_vals_mid = .5 * (z_vals[Ellipsis, 1:] + z_vals[Ellipsis, :-1])
@@ -146,6 +158,10 @@ class NerfModel(nn.Module):
           self.num_fine_samples,
           randomized,
       )
+
+      batch_size, num_samples = samples.shape[:-1]
+      samples = samples.reshape(-1, 3)
+
       samples_enc = model_utils.posenc(
           samples,
           self.min_deg_point,
@@ -165,9 +181,15 @@ class NerfModel(nn.Module):
           num_sigma_channels=self.num_sigma_channels)
 
       if self.use_viewdirs:
+        viewdirs_enc = jnp.tile(viewdirs_enc_[:, None, :], (1, num_samples, 1))
+        viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
         raw_rgb, raw_sigma = fine_mlp(samples_enc, viewdirs_enc)
       else:
         raw_rgb, raw_sigma = fine_mlp(samples_enc)
+
+      raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
+      raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
+
       key, rng_1 = random.split(rng_1)
       raw_sigma = model_utils.add_gaussian_noise(
           key,
@@ -177,6 +199,7 @@ class NerfModel(nn.Module):
       )
       rgb = self.rgb_activation(raw_rgb)
       sigma = self.sigma_activation(raw_sigma)
+
       comp_rgb, disp, acc, unused_weights = model_utils.volumetric_rendering(
           rgb,
           sigma,

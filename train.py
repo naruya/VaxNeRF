@@ -30,9 +30,9 @@ from jax import random
 import jax.numpy as jnp
 import numpy as np
 
-from jaxnerf.nerf import datasets
-from jaxnerf.nerf import models
-from jaxnerf.nerf import utils
+from nerf import datasets
+from nerf import models
+from nerf import utils
 
 FLAGS = flags.FLAGS
 
@@ -113,6 +113,12 @@ def train_step(model, rng, state, batch, lr):
   return new_state, stats, rng
 
 
+def render_fn(model, variables, key_0, key_1, rays):
+  return jax.lax.all_gather(
+      model.apply(variables, key_0, key_1, rays, FLAGS.randomized),
+      axis_name="batch")
+
+
 def main(unused_argv):
   rng = random.PRNGKey(20200823)
   # Shift the numpy random seed by host_id() to shuffle data loaded by different
@@ -140,7 +146,7 @@ def main(unused_argv):
       utils.learning_rate_decay,
       lr_init=FLAGS.lr_init,
       lr_final=FLAGS.lr_final,
-      max_steps=FLAGS.max_steps,
+      max_steps=FLAGS.lr_max_steps,
       lr_delay_steps=FLAGS.lr_delay_steps,
       lr_delay_mult=FLAGS.lr_delay_mult)
 
@@ -150,17 +156,11 @@ def main(unused_argv):
       in_axes=(0, 0, 0, None),
       donate_argnums=(2,))
 
-  def render_fn(variables, key_0, key_1, rays):
-    return jax.lax.all_gather(
-        model.apply(variables, key_0, key_1, rays, FLAGS.randomized),
-        axis_name="batch")
-
   render_pfn = jax.pmap(
-      render_fn,
-      in_axes=(None, None, None, 0),  # Only distribute the data input.
-      donate_argnums=(3,),
+      functools.partial(render_fn, model),
       axis_name="batch",
-  )
+      in_axes=(None, None, None, 0),  # Only distribute the data input.
+      donate_argnums=(3,))
 
   # Compiling to the CPU because it's faster and more accurate.
   ssim_fn = jax.jit(
