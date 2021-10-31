@@ -116,7 +116,7 @@ class NerfModel(nn.Module):
       viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
       raw_rgb, raw_sigma = coarse_mlp(samples_enc, viewdirs_enc)
     else:
-      raw_rgb, raw_sigma = coarse_mlp(samples_enc)
+      raise NotImplementedError("deleted")
 
     raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
     raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
@@ -185,7 +185,7 @@ class NerfModel(nn.Module):
         viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
         raw_rgb, raw_sigma = fine_mlp(samples_enc, viewdirs_enc)
       else:
-        raw_rgb, raw_sigma = fine_mlp(samples_enc)
+        raise NotImplementedError("deleted")
 
       raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
       raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
