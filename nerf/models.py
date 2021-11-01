@@ -220,6 +220,10 @@ class NerfModel(nn.Module):
     return ret
 
 
+def digitize(p, near, far, size):
+  return jnp.digitize(p + (near + far) / 2., jnp.linspace(near, far, size-1))
+
+
 def construct_nerf(key, example_batch, args):
   """Construct a Neural Radiance Field.
 
