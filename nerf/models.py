@@ -171,10 +171,6 @@ class NerfModel(nn.Module):
       batch_size, num_samples = samples.shape[:-1]
       samples = samples.reshape(-1, 3)
 
-      pts= utils.digitize(samples, self.near, self.far, voxel.shape[0])
-      mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
-      ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inp])
-
       samples_enc = model_utils.posenc(
           samples,
           self.min_deg_point,
@@ -196,14 +192,9 @@ class NerfModel(nn.Module):
       if self.use_viewdirs:
         viewdirs_enc = jnp.tile(viewdirs_enc_[:, None, :], (1, num_samples, 1))
         viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
-        raw_rgb, raw_sigma = fine_mlp(samples_enc[ind_inp], viewdirs_enc[ind_inp])
+        raw_rgb, raw_sigma = fine_mlp(samples_enc, viewdirs_enc)
       else:
         raise NotImplementedError("deleted")
-
-      ind = jnp.argsort(jnp.concatenate([ind_inp, ind_bak]))
-      len_pad = batch_size * num_samples - len_inp
-      raw_rgb = jnp.vstack([raw_rgb, jnp.zeros([len_pad, 3])])[ind] * mask[:, None]
-      raw_sigma = jnp.vstack([raw_sigma, jnp.zeros([len_pad, 1])])[ind] * mask[:, None]
 
       raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
       raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
