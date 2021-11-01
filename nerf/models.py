@@ -86,7 +86,7 @@ class NerfModel(nn.Module):
     batch_size, num_samples = samples.shape[:-1]
     samples = samples.reshape(-1, 3)
 
-    pts= jnp.digitize(samples, jnp.linspace(self.near, self.far, voxel.shape[0]))
+    pts= utils.digitize(samples, self.near, self.far, voxel.shape[0])
     mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
     ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inp])
 
@@ -171,7 +171,7 @@ class NerfModel(nn.Module):
       batch_size, num_samples = samples.shape[:-1]
       samples = samples.reshape(-1, 3)
 
-      pts= jnp.digitize(samples, jnp.linspace(self.near, self.far, voxel.shape[0]))
+      pts= utils.digitize(samples, self.near, self.far, voxel.shape[0])
       mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
       ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inp])
 

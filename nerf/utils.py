@@ -417,3 +417,7 @@ def unshard(x, padding=0):
   if padding > 0:
     y = y[:-padding]
   return y
+
+
+def digitize(p, near, far, size):
+  return jnp.digitize(p + (near + far) / 2., jnp.linspace(near, far, size-1))
