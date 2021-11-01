@@ -58,7 +58,7 @@ class NerfModel(nn.Module):
   legacy_posenc_order: bool  # Keep the same ordering as the original tf code.
 
   @nn.compact
-  def __call__(self, rng_0, rng_1, rays, voxel, len_inp, randomized):
+  def __call__(self, rng_0, rng_1, rays, voxel, len_inpc, len_inpf, randomized):
     """Nerf Model.
 
     Args:
@@ -88,7 +88,8 @@ class NerfModel(nn.Module):
 
     pts= digitize(samples, self.near, self.far, voxel.shape[0])
     mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
-    ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inp])
+    len_c = jnp.sum(mask)
+    ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inpc])
 
     samples_enc = model_utils.posenc(
         samples,
@@ -123,7 +124,7 @@ class NerfModel(nn.Module):
       raise NotImplementedError("deleted")
 
     ind = jnp.argsort(jnp.concatenate([ind_inp, ind_bak]))
-    len_pad = batch_size * num_samples - len_inp
+    len_pad = batch_size * num_samples - len_inpc
     raw_rgb = jnp.vstack([raw_rgb, jnp.zeros([len_pad, 3])])[ind] * mask[:, None]
     raw_sigma = jnp.vstack([raw_sigma, jnp.zeros([len_pad, 1])])[ind] * mask[:, None]
 
@@ -171,6 +172,11 @@ class NerfModel(nn.Module):
       batch_size, num_samples = samples.shape[:-1]
       samples = samples.reshape(-1, 3)
 
+      pts= digitize(samples, self.near, self.far, voxel.shape[0])
+      mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
+      len_f = jnp.sum(mask)
+      ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inpf])
+
       samples_enc = model_utils.posenc(
           samples,
           self.min_deg_point,
@@ -192,9 +198,14 @@ class NerfModel(nn.Module):
       if self.use_viewdirs:
         viewdirs_enc = jnp.tile(viewdirs_enc_[:, None, :], (1, num_samples, 1))
         viewdirs_enc =  viewdirs_enc.reshape(batch_size * num_samples, -1)
-        raw_rgb, raw_sigma = fine_mlp(samples_enc, viewdirs_enc)
+        raw_rgb, raw_sigma = fine_mlp(samples_enc[ind_inp], viewdirs_enc[ind_inp])
       else:
         raise NotImplementedError("deleted")
+
+      ind = jnp.argsort(jnp.concatenate([ind_inp, ind_bak]))
+      len_pad = batch_size * num_samples - len_inp
+      raw_rgb = jnp.vstack([raw_rgb, jnp.zeros([len_pad, 3])])[ind] * mask[:, None]
+      raw_sigma = jnp.vstack([raw_sigma, jnp.zeros([len_pad, 1])])[ind] * mask[:, None]
 
       raw_rgb = raw_rgb.reshape(batch_size, num_samples, 3)
       raw_sigma = raw_sigma.reshape(batch_size, num_samples, 1)
@@ -217,7 +228,11 @@ class NerfModel(nn.Module):
           white_bkgd=self.white_bkgd,
       )
       ret.append((comp_rgb, disp, acc))
-    return ret
+    else:
+      len_f = 0
+
+    aux = (len_c, len_f)
+    return ret, aux
 
 
 def digitize(p, near, far, size):
@@ -289,7 +304,8 @@ def construct_nerf(key, example_batch, args):
       rng_1=key3,
       rays=utils.namedtuple_map(lambda x: x[0], rays),
       voxel=jnp.load(args.voxel_path).astype(jnp.float32),
-      len_inp=args.len_inp_train,
+      len_inpc=args.len_inpc_train,
+      len_inpf=args.len_inpf_train,
       randomized=args.randomized)
 
   return model, init_variables

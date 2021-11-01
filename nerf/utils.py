@@ -43,6 +43,8 @@ class Stats:
   loss_c: float
   psnr_c: float
   weight_l2: float
+  len_c: float
+  len_f: float
 
 
 Rays = collections.namedtuple("Rays", ("origins", "directions", "viewdirs"))
@@ -178,8 +180,10 @@ def define_flags():
       "the size of chunks for evaluation inferences, set to the value that"
       "fits your GPU/TPU memory.")
 
-  flags.DEFINE_integer("len_inp_train", 2**15, "input size of MLP for train")
-  flags.DEFINE_integer("len_inp_eval", 2**19, "input size of MLP for eval")
+  flags.DEFINE_integer("len_inpc_train", 2**15, "input size of MLP for train")
+  flags.DEFINE_integer("len_inpf_train", 2**16, "input size of MLP for train")
+  flags.DEFINE_integer("len_inpc_eval", 2**19, "input size of MLP for eval")
+  flags.DEFINE_integer("len_inpf_eval", 2**20, "input size of MLP for eval")
   flags.DEFINE_string("voxel_path", None, "voxel file path")
 
 def update_flags(args):

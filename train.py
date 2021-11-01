@@ -41,7 +41,7 @@ utils.define_flags()
 config.parse_flags_with_absl()
 
 
-def train_step(model, rng, state, batch, lr, voxel, len_inp):
+def train_step(model, voxel, len_inpc, len_inpf, rng, state, batch, lr):
   """One optimization step.
 
   Args:
@@ -60,7 +60,7 @@ def train_step(model, rng, state, batch, lr, voxel, len_inp):
 
   def loss_fn(variables):
     rays = batch["rays"]
-    ret = model.apply(variables, key_0, key_1, rays, voxel, len_inp, FLAGS.randomized)
+    ret, aux = model.apply(variables, key_0, key_1, rays, voxel, len_inpc, len_inpf, FLAGS.randomized)
     if len(ret) not in (1, 2):
       raise ValueError(
           "ret should contain either 1 set of output (coarse only), or 2 sets"
@@ -88,7 +88,7 @@ def train_step(model, rng, state, batch, lr, voxel, len_inp):
         tree_sum_fn(lambda z: jnp.prod(jnp.array(z.shape))))
 
     stats = utils.Stats(
-        loss=loss, psnr=psnr, loss_c=loss_c, psnr_c=psnr_c, weight_l2=weight_l2)
+        loss=loss, psnr=psnr, loss_c=loss_c, psnr_c=psnr_c, weight_l2=weight_l2, len_c=aux[0], len_f=aux[1])
     return loss + loss_c + FLAGS.weight_decay_mult * weight_l2, stats
 
   (_, stats), grad = (
@@ -114,9 +114,9 @@ def train_step(model, rng, state, batch, lr, voxel, len_inp):
   return new_state, stats, rng
 
 
-def render_fn(model, variables, key_0, key_1, rays, voxel, len_inp):
+def render_fn(model, voxel, len_inpc, len_inpf, variables, key_0, key_1, rays):
   return jax.lax.all_gather(
-      model.apply(variables, key_0, key_1, rays, voxel, len_inp, FLAGS.randomized),
+      model.apply(variables, key_0, key_1, rays, voxel, len_inpc, len_inpf, FLAGS.randomized)[0],
       axis_name="batch")
 
 
@@ -154,13 +154,13 @@ def main(unused_argv):
       lr_delay_mult=FLAGS.lr_delay_mult)
 
   train_pstep = jax.pmap(
-      functools.partial(train_step, model, voxel=voxel, len_inp=FLAGS.len_inp_train),
+      functools.partial(train_step, model, voxel, FLAGS.len_inpc_train, FLAGS.len_inpf_train),
       axis_name="batch",
       in_axes=(0, 0, 0, None),
       donate_argnums=(2,))
 
   render_pfn = jax.pmap(
-      functools.partial(render_fn, model, voxel=voxel, len_inp=FLAGS.len_inp_eval),
+      functools.partial(render_fn, model, voxel, FLAGS.len_inpc_eval, FLAGS.len_inpf_eval),
       axis_name="batch",
       in_axes=(None, None, None, 0),  # Only distribute the data input.
       donate_argnums=(3,))
@@ -210,6 +210,8 @@ def main(unused_argv):
         summary_writer.scalar("weight_l2", stats.weight_l2[0], step)
         avg_loss = np.mean(np.concatenate([s.loss for s in stats_trace]))
         avg_psnr = np.mean(np.concatenate([s.psnr for s in stats_trace]))
+        len_c = np.max(np.concatenate([s.len_c for s in stats_trace]))
+        len_f = np.max(np.concatenate([s.len_f for s in stats_trace]))
         stats_trace = []
         summary_writer.scalar("train_avg_loss", avg_loss, step)
         summary_writer.scalar("train_avg_psnr", avg_psnr, step)
@@ -224,6 +226,7 @@ def main(unused_argv):
               f"/{FLAGS.max_steps:d}: " + f"i_loss={stats.loss[0]:0.4f}, " +
               f"avg_loss={avg_loss:0.4f}, " +
               f"weight_l2={stats.weight_l2[0]:0.2e}, " + f"lr={lr:0.2e}, " +
+              f"len_c={len_c}, " + f"len_f={len_f}, " +
               f"{rays_per_sec:0.0f} rays/sec")
       if step % FLAGS.save_every == 0:
         state_to_save = jax.device_get(jax.tree_map(lambda x: x[0], state))

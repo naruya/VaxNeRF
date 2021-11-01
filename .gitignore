@@ -1,0 +1,6 @@
+data/*
+logs/*
+
+**/.python-version
+**/__pycache__
+**/.ipynb_checkpoints
