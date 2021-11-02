@@ -54,7 +54,7 @@ def render_fn(model, voxel, len_inpc, len_inpf, variables, key_0, key_1, rays):
   # Rendering is forced to be deterministic even if training was randomized, as
   # this eliminates "speckle" artifacts.
   return jax.lax.all_gather(
-      model.apply(variables, key_0, key_1, rays, voxel, len_inpc, len_inpf, False),
+      model.apply(variables, key_0, key_1, rays, voxel, len_inpc, len_inpf, False)[0],
       axis_name="batch")
 
 
