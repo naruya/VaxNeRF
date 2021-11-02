@@ -50,11 +50,11 @@ utils.define_flags()
 #       tf.convert_to_tensor(image2[None, Ellipsis]))[0]
 
 
-def render_fn(model, variables, key_0, key_1, rays, voxel, len_inp):
+def render_fn(model, voxel, len_inpc, len_inpf, variables, key_0, key_1, rays):
   # Rendering is forced to be deterministic even if training was randomized, as
   # this eliminates "speckle" artifacts.
   return jax.lax.all_gather(
-      model.apply(variables, key_0, key_1, rays, voxel, len_inp, False),
+      model.apply(variables, key_0, key_1, rays, voxel, len_inpc, len_inpf, False),
       axis_name="batch")
 
 
@@ -86,7 +86,7 @@ def main(unused_argv):
 
   # pmap over only the data input.
   render_pfn = jax.pmap(
-      functools.partial(render_fn, model, voxel=voxel, len_inp=FLAGS.len_inp_eval),
+      functools.partial(render_fn, model, voxel, FLAGS.len_inpc_eval, FLAGS.len_inpf_eval),
       axis_name="batch",
       in_axes=(None, None, None, 0),
       donate_argnums=(3,))
