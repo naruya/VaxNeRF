@@ -181,10 +181,10 @@ def define_flags():
       "fits your GPU/TPU memory.")
 
   flags.DEFINE_integer("len_inpc_train", 2**15, "input size of MLP for train")
-  flags.DEFINE_integer("len_inpf_train", 2**16, "input size of MLP for train")
-  flags.DEFINE_integer("len_inpc_eval", 2**19, "input size of MLP for eval")
-  flags.DEFINE_integer("len_inpf_eval", 2**20, "input size of MLP for eval")
-  flags.DEFINE_string("voxel_path", None, "voxel file path")
+  flags.DEFINE_integer("len_inpf_train", 0, "input size of MLP for train")
+  flags.DEFINE_integer("len_inpc_eval", 2**16, "input size of MLP for eval")
+  flags.DEFINE_integer("len_inpf_eval", 0, "input size of MLP for eval")
+  flags.DEFINE_string("voxel_path", "", "voxel file path")
 
 def update_flags(args):
   """Update the flags in `args` with the contents of the config YAML file."""

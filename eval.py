@@ -80,7 +80,10 @@ def main(unused_argv):
   state = utils.TrainState(optimizer=optimizer)
   del optimizer, init_variables
 
-  voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
+  if not FLAGS.voxel_path == "":
+    voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
+  else:
+    voxel = None
 
   # lpips_model = tf_hub.load(LPIPS_TFHUB_PATH)
 

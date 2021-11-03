@@ -143,7 +143,10 @@ def main(unused_argv):
   state = utils.TrainState(optimizer=optimizer)
   del optimizer, variables
 
-  voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
+  if not FLAGS.voxel_path == "":
+    voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
+  else:
+    voxel = None
 
   learning_rate_fn = functools.partial(
       utils.learning_rate_decay,
