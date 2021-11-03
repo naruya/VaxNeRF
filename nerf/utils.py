@@ -170,7 +170,7 @@ def define_flags():
 
   # Eval Flags
   flags.DEFINE_bool(
-      "eval_once", True,
+      "eval_once", False,
       "evaluate the model only once if true, otherwise keeping evaluating new"
       "checkpoints if there's any.")
   flags.DEFINE_bool("save_output", True,
@@ -240,7 +240,8 @@ def render_image(render_fn, rays, rng, normalize_disp, chunk=8192):
   """
   height, width = rays[0].shape[:2]
   num_rays = height * width
-  rays = namedtuple_map(lambda r: r.reshape((num_rays, -1)), rays)
+  ind = np.random.permutation(np.arange(num_rays))
+  rays = namedtuple_map(lambda r: r.reshape((num_rays, -1))[ind], rays)
 
   unused_rng, key_0, key_1 = jax.random.split(rng, 3)
   host_id = jax.host_id()
@@ -264,7 +265,8 @@ def render_image(render_fn, rays, rng, normalize_disp, chunk=8192):
     chunk_results = render_fn(key_0, key_1, chunk_rays)[-1]
     results.append([unshard(x[0], padding) for x in chunk_results])
     # pylint: enable=cell-var-from-loop
-  rgb, disp, acc = [jnp.concatenate(r, axis=0) for r in zip(*results)]
+  ind = jnp.argsort(ind)
+  rgb, disp, acc = [jnp.concatenate(r, axis=0)[ind] for r in zip(*results)]
   # Normalize disp for visualization for ndc_rays in llff front-facing scenes.
   if normalize_disp:
     disp = (disp - disp.min()) / (disp.max() - disp.min())

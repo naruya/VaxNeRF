@@ -95,17 +95,41 @@ def main(unused_argv):
   ssim_fn = jax.jit(
       functools.partial(utils.compute_ssim, max_val=1.), backend="cpu")
 
-  last_step = 0
+  # last_step = 0
   out_dir = path.join(FLAGS.train_dir,
                       "path_renders" if FLAGS.render_path else "test_preds")
   if not FLAGS.eval_once:
     summary_writer = tensorboard.SummaryWriter(
         path.join(FLAGS.train_dir, "eval"))
+  steps = [
+    10000,
+    20000,
+    30000,
+    40000,
+    50000,
+    60000,
+    70000,
+    80000,
+    90000,
+    100000,
+    200000,
+    300000,
+    400000,
+    500000,
+    600000,
+    700000,
+    800000,
+    900000,
+    1000000,
+  ]
+  stepi = 0
   while True:
-    state = checkpoints.restore_checkpoint(FLAGS.train_dir, state)
-    step = int(state.optimizer.state.step)
-    if step <= last_step:
-      continue
+    step = steps[stepi]
+    print("step:", step)
+    state = checkpoints.restore_checkpoint(FLAGS.train_dir, state, step)
+    # step = int(state.optimizer.state.step)
+    # if step <= last_step:
+    #   continue
     if FLAGS.save_output and (not utils.isdir(out_dir)):
       utils.makedirs(out_dir)
     psnr_values = []
@@ -168,7 +192,8 @@ def main(unused_argv):
       break
     if int(step) >= FLAGS.max_steps:
       break
-    last_step = step
+    # last_step = step
+    stepi += 1
 
 
 if __name__ == "__main__":
