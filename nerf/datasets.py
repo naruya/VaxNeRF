@@ -128,7 +128,7 @@ class Dataset(threading.Thread):
       self.rays = utils.namedtuple_map(lambda r: r.reshape([-1, r.shape[-1]]),
                                        self.rays)
     elif args.batching == "single_image":
-      self.images = self.images.reshape([-1, self.resolution, 3])
+      self.images = self.images.reshape([-1, self.resolution, args.num_rgb_channels])
       self.rays = utils.namedtuple_map(
           lambda r: r.reshape([-1, self.resolution, r.shape[-1]]), self.rays)
     else:
@@ -221,7 +221,9 @@ class Blender(Dataset):
       cams.append(np.array(frame["transform_matrix"], dtype=np.float32))
       images.append(image)
     self.images = np.stack(images, axis=0)
-    if args.white_bkgd:
+    if args.alpha_bkgd:
+      pass
+    elif args.white_bkgd:
       self.images = (
           self.images[Ellipsis, :3] * self.images[Ellipsis, -1:] +
           (1. - self.images[Ellipsis, -1:]))
