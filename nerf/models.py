@@ -214,7 +214,7 @@ class NerfModel(nn.Module):
 
       if self.use_vax:
         ind = jnp.argsort(jnp.concatenate([ind_inp, ind_bak]))
-        len_pad = batch_size * num_samples - len_inp
+        len_pad = batch_size * num_samples - len_inpf
         raw_rgb = jnp.vstack([raw_rgb, jnp.zeros([len_pad, 3])])[ind] * mask[:, None]
         raw_sigma = jnp.vstack([raw_sigma, jnp.zeros([len_pad, 1])])[ind] * mask[:, None]
 
@@ -324,8 +324,8 @@ def construct_nerf(key, example_batch, args):
       rng_1=key3,
       rays=utils.namedtuple_map(lambda x: x[0], rays),
       voxel=voxel,
-      len_inpc=args.len_inpc_train,
-      len_inpf=args.len_inpf_train,
+      len_inpc=args.len_inpc,
+      len_inpf=args.len_inpf,
       randomized=args.randomized)
 
   return model, init_variables
