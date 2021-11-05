@@ -1,5 +1,7 @@
 data/*
 logs/*
+log*
+runs/*
 
 **/.python-version
 **/__pycache__

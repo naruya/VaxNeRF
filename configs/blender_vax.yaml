@@ -9,3 +9,7 @@ batch_size: 4096
 randomized: true
 
 chunk: 4000
+len_inpc_train: 200000
+len_inpc_eval: 400000
+len_inpf_train: 0
+len_inpf_eval: 0
