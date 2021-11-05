@@ -180,10 +180,8 @@ def define_flags():
       "the size of chunks for evaluation inferences, set to the value that"
       "fits your GPU/TPU memory.")
 
-  flags.DEFINE_integer("len_inpc_train", 0, "input size of MLP for train")
-  flags.DEFINE_integer("len_inpf_train", 0, "input size of MLP for train")
-  flags.DEFINE_integer("len_inpc_eval", 0, "input size of MLP for eval")
-  flags.DEFINE_integer("len_inpf_eval", 0, "input size of MLP for eval")
+  flags.DEFINE_integer("len_inpc", 0, "input size of MLP for train")
+  flags.DEFINE_integer("len_inpf", 0, "input size of MLP for train")
   flags.DEFINE_string("voxel_path", "", "voxel file path")
 
 def update_flags(args):

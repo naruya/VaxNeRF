@@ -157,13 +157,13 @@ def main(unused_argv):
       lr_delay_mult=FLAGS.lr_delay_mult)
 
   train_pstep = jax.pmap(
-      functools.partial(train_step, model, voxel, FLAGS.len_inpc_train, FLAGS.len_inpf_train),
+      functools.partial(train_step, model, voxel, FLAGS.len_inpc, FLAGS.len_inpf),
       axis_name="batch",
       in_axes=(0, 0, 0, None),
       donate_argnums=(2,))
 
   render_pfn = jax.pmap(
-      functools.partial(render_fn, model, voxel, FLAGS.len_inpc_eval, FLAGS.len_inpf_eval),
+      functools.partial(render_fn, model, voxel, FLAGS.len_inpc*2, FLAGS.len_inpf*2),
       axis_name="batch",
       in_axes=(None, None, None, 0),  # Only distribute the data input.
       donate_argnums=(3,))
