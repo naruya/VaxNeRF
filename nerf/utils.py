@@ -75,6 +75,8 @@ def define_flags():
   flags.DEFINE_bool(
       "white_bkgd", True, "using white color as default background."
       "(used in the blender dataset only)")
+  flags.DEFINE_bool(
+      "alpha_bkgd", False, "If True, dataset contains rgba image")
   flags.DEFINE_integer("batch_size", 1024,
                        "the number of rays in a mini-batch (for training).")
   flags.DEFINE_integer("factor", 4,
