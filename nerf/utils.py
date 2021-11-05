@@ -163,7 +163,7 @@ def define_flags():
   flags.DEFINE_integer("print_every", 100,
                        "the number of steps between reports to tensorboard.")
   flags.DEFINE_integer(
-      "render_every", 5000, "the number of steps to render a test image,"
+      "render_every", 99999999, "the number of steps to render a test image,"
       "better to be x00 for accurate step time record.")
   flags.DEFINE_integer("gc_every", 10000,
                        "the number of steps to run python garbage collection.")
@@ -180,9 +180,9 @@ def define_flags():
       "the size of chunks for evaluation inferences, set to the value that"
       "fits your GPU/TPU memory.")
 
-  flags.DEFINE_integer("len_inpc_train", 2**15, "input size of MLP for train")
+  flags.DEFINE_integer("len_inpc_train", 0, "input size of MLP for train")
   flags.DEFINE_integer("len_inpf_train", 0, "input size of MLP for train")
-  flags.DEFINE_integer("len_inpc_eval", 2**16, "input size of MLP for eval")
+  flags.DEFINE_integer("len_inpc_eval", 0, "input size of MLP for eval")
   flags.DEFINE_integer("len_inpf_eval", 0, "input size of MLP for eval")
   flags.DEFINE_string("voxel_path", "", "voxel file path")
 
