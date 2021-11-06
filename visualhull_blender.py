@@ -207,7 +207,6 @@ def main(unused_argv):
         utils.update_flags(FLAGS)
 
     target = FLAGS.data_dir.split("/")[-1]
-    os.makedirs(os.path.join(FLAGS.voxel_dir, target), exist_ok=True)
 
     dataset = PureDataset("train", FLAGS)
     dataset.images = dataset.images.reshape(-1,800,800,FLAGS.num_rgb_channels)
