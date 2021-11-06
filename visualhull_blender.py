@@ -23,7 +23,6 @@ flags.DEFINE_integer("vsize", 400, "voxel size")
 flags.DEFINE_string("voxel_dir", "data/voxel", "voxel data directory.")
 flags.DEFINE_string("vh_save", "shape", "Save type ('shape' of 'color')")
 flags.DEFINE_bool("vh_test", False, "If True, test the result of visual hull")
-flags.DEFINE_bool("alpha_bkgd", True, "If True, dataset contains rgba image")
 flags.DEFINE_integer("dilation", 1, "dilation size")
 flags.DEFINE_integer("thresh", 100, "threshold")
 config.parse_flags_with_absl()
@@ -125,7 +124,7 @@ def visualhull(dataset, test_dataset=None, target="", dilation=5, thresh=100):
         mask = cv2.dilate(mask.astype(np.uint8), np.ones((dilation,dilation)), iterations=1)
         voxel_s += carve_voxel(o, d, mask).block_until_ready()  # add
 
-    voxel_s = (voxel_s > thresh).astype(jnp.uint8) * get_sphere()  # add
+    voxel_s = (voxel_s >= thresh).astype(jnp.uint8) * get_sphere()  # add
 
     if FLAGS.vh_save == "shape":
         print(voxel_s.dtype, voxel_s.shape)
@@ -202,8 +201,8 @@ def visualhull(dataset, test_dataset=None, target="", dilation=5, thresh=100):
 
 
 def main(unused_argv):
-    if FLAGS.alpha_bkgd:
-        FLAGS.num_rgb_channels = 4
+    FLAGS.alpha_bkgd = True
+    FLAGS.num_rgb_channels = 4
     if FLAGS.config is not None:
         utils.update_flags(FLAGS)
 
