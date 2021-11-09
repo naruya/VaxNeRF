@@ -92,7 +92,7 @@ def main(unused_argv):
 
   # pmap over only the data input.
   render_pfn = jax.pmap(
-      functools.partial(render_fn, model, voxel, FLAGS.len_inpc*2, FLAGS.len_inpf*2),
+      functools.partial(render_fn, model, voxel, int(FLAGS.len_inpc*2), int(FLAGS.len_inpf*1.5)),
       axis_name="batch",
       in_axes=(None, None, None, 0),
       donate_argnums=(3,))
