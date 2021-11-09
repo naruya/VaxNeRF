@@ -29,6 +29,7 @@ def digitize(p, rsize, vsize):
 @partial(jit, static_argnums=(3,4,5,6,))
 def carve_voxel(o, d, mask, rsize, vsize, t_n, t_f):
     voxel_si = jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint8)
+    voxel_ri = jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint8)  # for ray count
     mask = device_put(mask)
 
     t_all = jnp.linspace(t_n, t_f, vsize+1)
@@ -36,7 +37,8 @@ def carve_voxel(o, d, mask, rsize, vsize, t_n, t_f):
 
     mask = jnp.repeat(mask[:,:,None].astype(jnp.uint8), vsize+1, axis=2)
     voxel_si = voxel_si.at[ray_p[:,:,:,1], ray_p[:,:,:,0], ray_p[:,:,:,2]].set(mask)
-    return voxel_si
+    voxel_ri = voxel_si.at[ray_p[:,:,:,1], ray_p[:,:,:,0], ray_p[:,:,:,2]].set(jnp.ones_like(mask))
+    return voxel_si, voxel_ri
 
 
 @partial(jit, static_argnums=(6,7,8,9,))
@@ -95,7 +97,8 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=5, thresh=
     # t_c = (t_f + t_n) / 2.  # center
 
     ### shape
-    voxel_s = np.zeros([vsize, vsize, vsize]).astype(np.bool)  # add
+    voxel_s = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.int16))  # add
+    voxel_r = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.float32))  # ray counter
 
     for idx in tqdm(range(dataset.size)):
         o = dataset.rays.origins[idx]
@@ -111,9 +114,14 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=5, thresh=
             mask = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3,3)))
         # dilation (It makes appearance worse, but recommended for voxel initialization)
         mask = cv2.dilate(mask.astype(np.uint8), np.ones((dilation,dilation)), iterations=1)
-        voxel_s += carve_voxel(o, d, mask, rsize, vsize, t_n, t_f).block_until_ready()  # add
+        output = carve_voxel(o, d, mask, rsize, vsize, t_n, t_f)  # add
+        jax.tree_map(lambda x: x.block_until_ready(), output)
+        voxel_si, voxel_ri = output
+        voxel_s += voxel_si
+        voxel_r += voxel_ri
 
-    voxel_s = (voxel_s >= thresh).astype(jnp.uint8) * get_sphere(vsize)  # add
+    # voxel_s = (voxel_s >= voxel_r).astype(jnp.uint8) * get_sphere(vsize)  # add
+    voxel_s = ((voxel_s >= (voxel_r * (thresh / 100.))) * (voxel_s > 0.)).astype(jnp.uint8) * get_sphere(vsize)  # add
 
     # if FLAGS.vh_save == "shape":
     print(voxel_s.dtype, voxel_s.shape)
@@ -140,7 +148,7 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=5, thresh=
         np.save(os.path.join(FLAGS.voxel_dir+"_dil{}".format(dilation), target, "voxel_color.npy"), voxel_c)
         print("done!")
 
-        N=10
+        N=20
         plt.figure(figsize=(200,40))
         for i in range(N):
             o = test_dataset.rays.origins[i*10]

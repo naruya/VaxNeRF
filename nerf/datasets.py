@@ -568,7 +568,7 @@ class NSVF(Dataset):
 
             origins = self.camtoworlds[:, :3, -1]
             rsize = np.max(np.abs(origins)) * 2  # real size
-            near, far = rsize * 0.25, rsize * 0.75  # (same as blender dataset)
+            near, far = rsize * 0.15, rsize * 0.85  ### TODO
             with open(path.join(args.data_dir, "near_and_far.txt"), 'w') as f:
                 f.write(str(near) +" " + str(far))
 
