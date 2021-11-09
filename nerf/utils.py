@@ -186,7 +186,7 @@ def define_flags():
   flags.DEFINE_integer("len_inpf", 0, "input size of MLP for train")
   flags.DEFINE_string("voxel_path", "", "voxel file path")
 
-def update_flags(args):
+def update_flags(args, no_nf=False):
   """Update the flags in `args` with the contents of the config YAML file."""
   pth = path.join(args.config + ".yaml")
   with open_file(pth, "r") as fin:
@@ -196,6 +196,10 @@ def update_flags(args):
   if invalid_args:
     raise ValueError(f"Invalid args {invalid_args} in {pth}.")
   args.__dict__.update(configs)
+  if args.dataset == "nsvf" and not no_nf:
+    with open(path.join(args.data_dir, "near_and_far.txt"), 'r') as f:
+      near, far = f.readline().split()
+      args.__dict__.update({'near': float(near), 'far': float(far)})
 
 
 def open_file(pth, mode="r"):
