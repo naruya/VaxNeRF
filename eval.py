@@ -67,7 +67,7 @@ def main(unused_argv):
   rng = random.PRNGKey(20200823)
 
   if FLAGS.config is not None:
-    utils.update_flags(FLAGS)
+    utils.update_flags(FLAGS, no_nf=True)
   if FLAGS.train_dir is None:
     raise ValueError("train_dir must be set. None set now.")
   if FLAGS.data_dir is None:

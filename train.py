@@ -127,7 +127,7 @@ def main(unused_argv):
   np.random.seed(20201473 + jax.host_id())
 
   if FLAGS.config is not None:
-    utils.update_flags(FLAGS)
+    utils.update_flags(FLAGS, no_nf=True)
   if FLAGS.batch_size % jax.device_count() != 0:
     raise ValueError("Batch size must be divisible by the number of devices.")
   if FLAGS.train_dir is None:
