@@ -137,6 +137,9 @@ def main(unused_argv):
   dataset = datasets.get_dataset("train", FLAGS)
   test_dataset = datasets.get_dataset("test", FLAGS)
 
+  if FLAGS.dataset == "nsvf":
+    utils.update_flags(FLAGS, no_nf=False)
+
   rng, key = random.split(rng)
   model, variables = models.get_model(key, dataset.peek(), FLAGS)
   optimizer = flax.optim.Adam(FLAGS.lr_init).create(variables)

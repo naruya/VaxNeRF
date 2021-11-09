@@ -74,6 +74,9 @@ def main(unused_argv):
     raise ValueError("data_dir must be set. None set now.")
 
   dataset = datasets.get_dataset("test", FLAGS)
+  if FLAGS.dataset == "nsvf":
+    utils.update_flags(FLAGS, no_nf=False)
+
   rng, key = random.split(rng)
   model, init_variables = models.get_model(key, dataset.peek(), FLAGS)
   optimizer = flax.optim.Adam(FLAGS.lr_init).create(init_variables)
