@@ -197,7 +197,10 @@ def main(unused_argv):
     if reset_timer:
       t_loop_start = time.time()
       reset_timer = False
-    lr = learning_rate_fn(step)
+    if FLAGS.small_lr_at_first and step <= 1000:
+      lr = FLAGS.lr_init / 10.
+    else:
+      lr = learning_rate_fn(step)
     state, stats, keys = train_pstep(keys, state, batch, lr)
     if jax.host_id() == 0:
       stats_trace.append(stats)

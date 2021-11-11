@@ -324,8 +324,9 @@ def construct_nerf(key, example_batch, args):
       rng_1=key3,
       rays=utils.namedtuple_map(lambda x: x[0], rays),
       voxel=voxel,
-      len_inpc=1,
-      len_inpf=1,
+      # small len_inp is recommended for model.init (small peek batch data)
+      len_inpc=1 if args.num_coarse_samples > 0 else 0,
+      len_inpf=1 if args.num_fine_samples > 0 else 1,
       randomized=args.randomized)
 
   return model, init_variables

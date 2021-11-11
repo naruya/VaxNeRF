@@ -144,6 +144,7 @@ def define_flags():
   # Train Flags
   flags.DEFINE_float("lr_init", 5e-4, "The initial learning rate.")
   flags.DEFINE_float("lr_final", 5e-6, "The final learning rate.")
+  flags.DEFINE_bool("small_lr_at_first", False, "use small learning rate at first few steps")
   flags.DEFINE_integer(
       "lr_max_steps", 1000000, "the number of optimization steps."
       "It is recommended not to change this value for a fair comparison")
