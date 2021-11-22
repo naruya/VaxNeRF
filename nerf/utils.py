@@ -119,10 +119,9 @@ def define_flags():
                        "Maximum degree of positional encoding for points.")
   flags.DEFINE_integer("deg_view", 4,
                        "Degree of positional encoding for viewdirs.")
-  flags.DEFINE_integer(
-      "num_coarse_samples", 64,
-      "the number of samples on each ray for the coarse model.")
-  flags.DEFINE_integer("num_fine_samples", 128,
+  flags.DEFINE_integer("num_coarse_samples", 0,
+                       "the number of samples on each ray for the coarse model.")
+  flags.DEFINE_integer("num_fine_samples", 0,
                        "the number of samples on each ray for the fine model.")
   flags.DEFINE_bool("use_viewdirs", True, "use view directions as a condition.")
   flags.DEFINE_float(
@@ -185,7 +184,8 @@ def define_flags():
 
   flags.DEFINE_integer("len_inpc", 0, "input size of MLP for train")
   flags.DEFINE_integer("len_inpf", 0, "input size of MLP for train")
-  flags.DEFINE_string("voxel_path", "", "voxel file path")
+  flags.DEFINE_string("voxel_dir", "", "voxel data directory")
+
 
 def update_flags(args, no_nf=False):
   """Update the flags in `args` with the contents of the config YAML file."""

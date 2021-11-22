@@ -28,8 +28,8 @@ from jax import random
 from jax import device_put
 import jax.numpy as jnp
 import numpy as np
-import tensorflow as tf
-import tensorflow_hub as tf_hub
+# import tensorflow as tf
+# import tensorflow_hub as tf_hub
 
 from nerf import datasets
 from nerf import models
@@ -61,8 +61,8 @@ def render_fn(model, voxel, len_inpc, len_inpf, variables, key_0, key_1, rays):
 def main(unused_argv):
   # Hide the GPUs and TPUs from TF so it does not reserve memory on them for
   # LPIPS computation or dataset loading.
-  tf.config.experimental.set_visible_devices([], "GPU")
-  tf.config.experimental.set_visible_devices([], "TPU")
+  # tf.config.experimental.set_visible_devices([], "GPU")
+  # tf.config.experimental.set_visible_devices([], "TPU")
 
   rng = random.PRNGKey(20200823)
 
@@ -83,8 +83,10 @@ def main(unused_argv):
   state = utils.TrainState(optimizer=optimizer)
   del optimizer, init_variables
 
-  if not FLAGS.voxel_path == "":
-    voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
+  if not FLAGS.voxel_dir == "":
+    voxel = device_put(jnp.load(path.join(FLAGS.voxel_dir, "voxel.npy")))
+    with open(path.join(FLAGS.train_dir, "len_inp.txt"), 'r') as f:
+      FLAGS.len_inpc, FLAGS.len_inpf = map(int, f.readline().split())
   else:
     voxel = None
 
@@ -92,7 +94,7 @@ def main(unused_argv):
 
   # pmap over only the data input.
   render_pfn = jax.pmap(
-      functools.partial(render_fn, model, voxel, int(FLAGS.len_inpc*2), int(FLAGS.len_inpf*1.5)),
+      functools.partial(render_fn, model, voxel, FLAGS.len_inpc*2, FLAGS.len_inpf*2),
       axis_name="batch",
       in_axes=(None, None, None, 0),
       donate_argnums=(3,))

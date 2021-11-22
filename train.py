@@ -30,6 +30,7 @@ from jax import random
 from jax import device_put
 import jax.numpy as jnp
 import numpy as np
+import os
 
 from nerf import datasets
 from nerf import models
@@ -120,7 +121,7 @@ def render_fn(model, voxel, len_inpc, len_inpf, variables, key_0, key_1, rays):
       axis_name="batch")
 
 
-def main(unused_argv):
+def train(max_steps, check=False):
   rng = random.PRNGKey(20200823)
   # Shift the numpy random seed by host_id() to shuffle data loaded by different
   # hosts.
@@ -146,10 +147,14 @@ def main(unused_argv):
   state = utils.TrainState(optimizer=optimizer)
   del optimizer, variables
 
-  if not FLAGS.voxel_path == "":
-    voxel = device_put(jnp.load(FLAGS.voxel_path).astype(jnp.float32))
-  else:
-    voxel = None
+  ### Vax
+  voxel, len_c, len_f = None, 0, 0
+  if not FLAGS.voxel_dir == "":
+    voxel = device_put(jnp.load(os.path.join(FLAGS.voxel_dir, "voxel.npy")))
+    if not check:
+      with open(os.path.join(FLAGS.train_dir, "len_inp.txt"), 'r') as f:
+        len_c, len_f = map(int, f.readline().split())
+        FLAGS.len_inpc, FLAGS.len_inpf = int(len_c*1.2), int(len_f*1.2)
 
   learning_rate_fn = functools.partial(
       utils.learning_rate_decay,
@@ -193,7 +198,7 @@ def main(unused_argv):
   gc.disable()  # Disable automatic garbage collection for efficiency.
   stats_trace = []
   reset_timer = True
-  for step, batch in zip(range(init_step, FLAGS.max_steps + 1), pdataset):
+  for step, batch in zip(range(init_step, max_steps + 1), pdataset):
     if reset_timer:
       t_loop_start = time.time()
       reset_timer = False
@@ -219,8 +224,9 @@ def main(unused_argv):
         summary_writer.scalar("weight_l2", stats.weight_l2[0], step)
         avg_loss = np.mean(np.concatenate([s.loss for s in stats_trace]))
         avg_psnr = np.mean(np.concatenate([s.psnr for s in stats_trace]))
-        len_c = np.max(np.concatenate([s.len_c for s in stats_trace]))
-        len_f = np.max(np.concatenate([s.len_f for s in stats_trace]))
+        ### Vax
+        len_c = max(len_c, np.max(np.concatenate([s.len_c for s in stats_trace])))
+        len_f = max(len_f, np.max(np.concatenate([s.len_f for s in stats_trace])))
         stats_trace = []
         summary_writer.scalar("train_avg_loss", avg_loss, step)
         summary_writer.scalar("train_avg_psnr", avg_psnr, step)
@@ -232,7 +238,7 @@ def main(unused_argv):
         summary_writer.scalar("train_rays_per_sec", rays_per_sec, step)
         precision = int(np.ceil(np.log10(FLAGS.max_steps))) + 1
         print(("{:" + "{:d}".format(precision) + "d}").format(step) +
-              f"/{FLAGS.max_steps:d}: " + f"i_loss={stats.loss[0]:0.4f}, " +
+              f"/{max_steps:d}: " + f"i_loss={stats.loss[0]:0.4f}, " +
               f"avg_loss={avg_loss:0.4f}, " +
               f"weight_l2={stats.weight_l2[0]:0.2e}, " + f"lr={lr:0.2e}, " +
               f"len_c={len_c}, " + f"len_f={len_f}, " +
@@ -279,6 +285,21 @@ def main(unused_argv):
     state = jax.device_get(jax.tree_map(lambda x: x[0], state))
     checkpoints.save_checkpoint(
         FLAGS.train_dir, state, int(FLAGS.max_steps), keep=100)
+
+  ### Vax
+  if check:
+    import shutil
+    shutil.rmtree(FLAGS.train_dir)
+    os.makedirs(FLAGS.train_dir)
+    with open(os.path.join(FLAGS.train_dir, "len_inp.txt"), 'w') as f:
+      f.write(str(int(len_c)) +" " + str(int(len_f)))
+
+
+def main(unused_argv):
+  ### Vax
+  if not FLAGS.voxel_dir == "":
+    train(1000, check=True)
+  train(FLAGS.max_steps)
 
 
 if __name__ == "__main__":

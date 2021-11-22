@@ -19,6 +19,7 @@ from typing import Any, Callable
 from flax import linen as nn
 from jax import random
 import jax.numpy as jnp
+import os
 
 from nerf import model_utils
 from nerf import utils
@@ -309,12 +310,12 @@ def construct_nerf(key, example_batch, args):
       rgb_activation=rgb_activation,
       sigma_activation=sigma_activation,
       legacy_posenc_order=args.legacy_posenc_order,
-      use_vax=args.voxel_path != "")
+      use_vax=args.voxel_dir != "")
   rays = example_batch["rays"]
   key1, key2, key3 = random.split(key, num=3)
 
-  if not args.voxel_path == "":
-    voxel = jnp.load(args.voxel_path).astype(jnp.float32)
+  if not args.voxel_dir == "":
+    voxel = jnp.load(os.path.join(args.voxel_dir, "voxel.npy"))
   else:
     voxel = None
 
