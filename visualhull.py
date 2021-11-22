@@ -194,9 +194,9 @@ def main(unused_argv):
     utils.update_flags(FLAGS, no_nf=True)
 
     if FLAGS.alpha_bkgd:
-      FLAGS.num_rgb_channels = 4
+        FLAGS.num_rgb_channels = 4
     else:
-      assert FLAGS.thresh < 1., "thresh < 1. is recommended"
+        assert FLAGS.thresh < 1., "thresh < 1. is recommended"
 
     class PureDataset(datasets.dataset_dict[FLAGS.dataset]):
         def start(self):
@@ -207,23 +207,23 @@ def main(unused_argv):
     dataset = PureDataset("train", FLAGS)
     dataset.images = dataset.images.reshape(-1,800,800,FLAGS.num_rgb_channels)
     dataset.rays = dataset.rays._replace(
-      origins=dataset.rays.origins.reshape(-1,800,800,3))
+        origins=dataset.rays.origins.reshape(-1,800,800,3))
     dataset.rays = dataset.rays._replace(
-      directions=dataset.rays.directions.reshape(-1,800,800,3))
+        directions=dataset.rays.directions.reshape(-1,800,800,3))
     dataset.rays = dataset.rays._replace(
-      viewdirs=dataset.rays.viewdirs.reshape(-1,800,800,3))
+        viewdirs=dataset.rays.viewdirs.reshape(-1,800,800,3))
 
     test_dataset = PureDataset("test", FLAGS)
     test_dataset.images = test_dataset.images.reshape(-1,800,800,FLAGS.num_rgb_channels)
     test_dataset.rays = test_dataset.rays._replace(
-      origins=test_dataset.rays.origins.reshape(-1,800,800,3))
+        origins=test_dataset.rays.origins.reshape(-1,800,800,3))
     test_dataset.rays = test_dataset.rays._replace(
-      directions=test_dataset.rays.directions.reshape(-1,800,800,3))
+        directions=test_dataset.rays.directions.reshape(-1,800,800,3))
     test_dataset.rays = test_dataset.rays._replace(
-      viewdirs=test_dataset.rays.viewdirs.reshape(-1,800,800,3))
+        viewdirs=test_dataset.rays.viewdirs.reshape(-1,800,800,3))
 
     if FLAGS.dataset == "nsvf":
-      utils.update_flags(FLAGS, no_nf=False)
+        utils.update_flags(FLAGS, no_nf=False)
 
     visualhull(FLAGS, dataset, test_dataset, target, dilation=FLAGS.dilation, thresh=FLAGS.thresh)
 
