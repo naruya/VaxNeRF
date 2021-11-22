@@ -80,7 +80,7 @@ def render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f):
     return img
 
 
-def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=5, thresh=1.):
+def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=1.):
     os.makedirs(os.path.join(FLAGS.voxel_dir+"_dil{}".format(dilation), target), exist_ok=True)
 
     # larger size requires larger images
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     utils.define_flags()
     flags.DEFINE_integer("vsize", 400, "voxel size")
     flags.DEFINE_string("voxel_dir", "data/voxel", "voxel data directory.")
-    flags.DEFINE_integer("dilation", 1, "dilation size")
+    flags.DEFINE_integer("dilation", 7, "dilation size")
     flags.DEFINE_float("thresh", 1., "threshold")
     config.parse_flags_with_absl()
     app.run(main)
