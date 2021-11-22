@@ -89,7 +89,7 @@ class NerfModel(nn.Module):
 
     if self.use_vax:
       pts= digitize(samples, self.near, self.far, voxel.shape[0])
-      mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
+      mask = voxel[pts[..., 0], pts[..., 1], pts[..., 2]].squeeze()
       len_c = jnp.sum(mask)
       ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inpc])
 
@@ -180,7 +180,7 @@ class NerfModel(nn.Module):
 
       if self.use_vax:
         pts= digitize(samples, self.near, self.far, voxel.shape[0])
-        mask = voxel[pts[..., 1], pts[..., 0], pts[..., 2]].squeeze()
+        mask = voxel[pts[..., 0], pts[..., 1], pts[..., 2]].squeeze()
         len_f = jnp.sum(mask)
         ind_inp, ind_bak = jnp.split(jnp.argsort(mask)[::-1], [len_inpf])
 
