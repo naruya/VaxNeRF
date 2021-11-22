@@ -19,7 +19,7 @@ from tqdm import tqdm
 @partial(jit, static_argnums=(1,2,))
 def digitize(p, rsize, vsize):
     p = jnp.round((p+rsize) * (vsize/(rsize*2)))
-    return jnp.clip(p.astype(jnp.int16), 0, vsize-1)
+    return jnp.clip(p.astype(jnp.uint16), 0, vsize-1)
 
 # somehow this requires more memory
 # @partial(jit, static_argnums=(1,2,3,))
@@ -30,8 +30,8 @@ def digitize(p, rsize, vsize):
 @partial(jit, static_argnums=(5,6,7,8,))
 def carve_voxel(o, d, mask, voxel_s, voxel_r, rsize, vsize, t_n, t_f):
     # shape and ray counter
-    voxel_si = jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint8)
-    voxel_ri = jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint8)
+    voxel_si = jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint16)
+    voxel_ri = jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint16)
 
     t_all = jnp.linspace(t_n, t_f, vsize+1)
     ray_p = digitize(o[:,:,None] + d[:,:,None] * t_all[None, None, :, None], rsize, vsize)
@@ -49,14 +49,14 @@ def carve_voxel(o, d, mask, voxel_s, voxel_r, rsize, vsize, t_n, t_f):
 def paint_voxel(o, d, img, voxel_c, voxel_t, voxel_s, rsize, vsize, t_n, t_f):
     # color and closest distance
     voxel_ci = jnp.zeros([vsize, vsize, vsize, 3]).astype(jnp.float32)
-    voxel_ti = jnp.zeros([vsize, vsize, vsize]).astype(jnp.int16) + (vsize+1)
+    voxel_ti = jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint16) + (vsize+1)
 
     t_all = jnp.linspace(t_n, t_f, vsize+1)
     ray_p = digitize(o[:,:,None] + d[:,:,None] * t_all[None, None, :, None], rsize, vsize)
 
     # intersection of ray and voxel
     ti = jnp.argmax(voxel_s[ray_p[:,:,:,0], ray_p[:,:,:,1], ray_p[:,:,:,2]], axis=2)
-    ray_p_ti = jnp.sum((ray_p * jnp.eye(vsize+1)[ti][:,:,:,None]),axis=2).astype(jnp.int16)
+    ray_p_ti = jnp.sum((ray_p * jnp.eye(vsize+1)[ti][:,:,:,None]),axis=2).astype(jnp.uint16)
     voxel_ci = voxel_ci.at[ray_p_ti[:,:,0], ray_p_ti[:,:,1], ray_p_ti[:,:,2]].set(img)
     voxel_ti = voxel_ti.at[ray_p_ti[:,:,0], ray_p_ti[:,:,1], ray_p_ti[:,:,2]].set(ti)
 
@@ -75,7 +75,7 @@ def render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f):
 
     # intersection of ray and voxel
     ti = jnp.argmax(voxel_s[ray_p[:,:,:,0], ray_p[:,:,:,1], ray_p[:,:,:,2]], axis=2)
-    ray_p_ti = jnp.sum((ray_p * jnp.eye(vsize+1)[ti][:,:,:,None]),axis=2).astype(jnp.int16)
+    ray_p_ti = jnp.sum((ray_p * jnp.eye(vsize+1)[ti][:,:,:,None]),axis=2).astype(jnp.uint16)
     img = voxel_c[ray_p_ti[:,:,0], ray_p_ti[:,:,1], ray_p_ti[:,:,2]]
     return img
 
@@ -90,8 +90,8 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=
     # t_c = (t_f + t_n) / 2.  # center
 
     ### shape
-    voxel_s = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.int16))
-    voxel_r = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.float32))
+    voxel_s = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint16))
+    voxel_r = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint16))
 
     for idx in tqdm(range(dataset.size)):
         o = dataset.rays.origins[idx]
@@ -118,7 +118,7 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=
 
     ### color
     voxel_c = device_put(jnp.zeros([vsize, vsize, vsize, 3]).astype(jnp.float32))
-    voxel_t = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.int16) + (vsize+1))
+    voxel_t = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint16) + (vsize+1))
 
     for idx in tqdm(range(dataset.size)):
         o = dataset.rays.origins[idx]
