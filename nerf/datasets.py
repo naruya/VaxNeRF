@@ -524,11 +524,11 @@ class NSVF(Dataset):
                 )
             images.append(image)
 
+        # https://github.com/creiser/kilonerf/blob/master/load_nsvf_dataset.py
         cams = []
-        # from kilonerf
         for pose_fname in pose_files:
-            cam_mtx = load_matrix(path.join(args.data_dir, 'pose', pose_fname))
-            cam_mtx = parse_extrinsics(cam_mtx, world2camera=False)
+            cam_mtx = self.load_matrix(path.join(args.data_dir, 'pose', pose_fname))
+            cam_mtx = self.parse_extrinsics(cam_mtx, world2camera=False)
             cam_mtx[:3, 1:3] = -cam_mtx[:3, 1:3]
             cams.append(cam_mtx[None, :])  # C2W
 
@@ -536,36 +536,16 @@ class NSVF(Dataset):
         self.n_examples, self.h, self.w = self.images.shape[:3]
         self.resolution = self.h * self.w
         self.camtoworlds = np.concatenate(cams, 0).astype(np.float32)
-        # np.stack(cams, axis=0).astype(np.float32)
 
-        # from blog_nerf
+        # https://github.com/vsitzmann/deepvoxels
         with open(path.join(args.data_dir, "intrinsics.txt"), 'r') as file:
-            focal, cx, cy, _ = line2floats(file.readline())
-            origin_x, origin_y, origin_z = line2floats(file.readline())
-            _, = line2floats(file.readline())
-            _, = line2floats(file.readline())
-            img_height, img_width = line2floats(file.readline())
+            focal, cx, cy, _ = self.line2floats(file.readline())
 
         self.focal = focal
-        # We assume fx and fy are same
-        # self.focal = (K[0, 0] + K[1, 1]) * 0.5
         if args.factor > 1:
             self.focal /= args.factor
 
         if self.split == 'train':
-            # bbox_path = path.join(args.data_dir, 'bbox.txt')
-            # bounding_box = load_matrix(bbox_path)[0, :-1]
-            # # global_domain_min, global_domain_max = ConfigManager.get_global_domain_min_and_max()
-            # global_domain_min = bounding_box[:3]
-            # global_domain_max = bounding_box[3:]
-            # camera_positions = self.camtoworlds[:, :3,-1]
-            # near, far = float('inf'), 0.
-            # for camera_position in camera_positions:
-            #     near = min(near, get_distance_to_closest_point_in_box(
-            #       camera_position, global_domain_min, global_domain_max))
-            #     far = max(far,  get_distance_to_furthest_point_in_box(
-            #       camera_position, global_domain_min, global_domain_max))
-
             origins = self.camtoworlds[:, :3, -1]
             rsize = np.max(np.abs(origins)) * 2  # real size
             near, far = rsize * 0.15, rsize * 0.85  ### TODO
@@ -573,67 +553,22 @@ class NSVF(Dataset):
                 f.write(str(near) +" " + str(far))
 
 
-def load_matrix(path):
-    return np.array([[float(w) for w in line.strip().split()] for line in open(path)]).astype(np.float32)
+    def load_matrix(self, path):
+        return np.array([[float(w) for w in line.strip().split()] for line in open(path)]).astype(np.float32)
 
 
-def line2floats(line):
-    return map(float, line.strip().split())
+    def line2floats(self, line):
+        return map(float, line.strip().split())
 
 
-def parse_extrinsics(extrinsics, world2camera=True):
-    """ this function is only for numpy for now"""
-    if extrinsics.shape[0] == 3 and extrinsics.shape[1] == 4:
-        extrinsics = np.vstack([extrinsics, np.array([[0, 0, 0, 1.0]])])
-    if extrinsics.shape[0] == 1 and extrinsics.shape[1] == 16:
-        extrinsics = extrinsics.reshape(4, 4)
-    if world2camera:
-        extrinsics = np.linalg.inv(extrinsics).astype(np.float32)
-    return extrinsics
-
-
-def get_distance_to_closest_point_in_box(point, domain_min, domain_max):
-    closest_point = np.array([0., 0., 0.])
-    for dim in range(3):
-        if point[dim] < domain_min[dim]:
-            closest_point[dim] = domain_min[dim]
-        elif domain_max[dim] < point[dim]:
-            closest_point[dim] = domain_max[dim]
-        else: # in between domain_min and domain_max
-            closest_point[dim] = point[dim]
-    return np.linalg.norm(point - closest_point)
-
-
-def get_distance_to_furthest_point_in_box(point, domain_min, domain_max):
-    furthest_point = np.array([0., 0., 0.])
-    for dim in range(3):
-        mid = (domain_min[dim] + domain_max[dim]) / 2
-        if point[dim] > mid:
-            furthest_point[dim] = domain_min[dim]
-        else:
-            furthest_point[dim] = domain_max[dim]
-    return np.linalg.norm(point - furthest_point)
-
-
-class ConfigManager:
-    global_domain_min = None
-    global_domain_max = None
-
-    @staticmethod
-    def init(cfg):
-        if 'global_domain_min' in cfg and 'global_domain_max' in cfg:
-            ConfigManager.global_domain_min = cfg['global_domain_min']
-            ConfigManager.global_domain_max = cfg['global_domain_max']
-        elif 'dataset_dir' in cfg and cfg['dataset_type'] == 'nsvf':
-            bbox_path = os.path.join(cfg['dataset_dir'], 'bbox.txt')
-            bounding_box = load_matrix(bbox_path)[0, :-1]
-            ConfigManager.global_domain_min = bounding_box[:3]
-            ConfigManager.global_domain_max = bounding_box[3:]
-
-    @staticmethod
-    def get_global_domain_min_and_max():
-        result = ConfigManager.global_domain_min, ConfigManager.global_domain_max
-        return result
+    def parse_extrinsics(self, extrinsics, world2camera=True):
+        if extrinsics.shape[0] == 3 and extrinsics.shape[1] == 4:
+            extrinsics = np.vstack([extrinsics, np.array([[0, 0, 0, 1.0]])])
+        if extrinsics.shape[0] == 1 and extrinsics.shape[1] == 16:
+            extrinsics = extrinsics.reshape(4, 4)
+        if world2camera:
+            extrinsics = np.linalg.inv(extrinsics).astype(np.float32)
+        return extrinsics
 
 
 dataset_dict = {
