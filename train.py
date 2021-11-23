@@ -298,7 +298,12 @@ def train(max_steps, check=False):
 def main(unused_argv):
   ### Vax
   if not FLAGS.voxel_dir == "":
-    train(1000, check=True)
+    if not os.path.exists(os.path.join(FLAGS.train_dir, "len_inp.txt")):
+      # avoid memory leaks
+      from multiprocessing import Process
+      p = Process(target=train, args=(1000,True))
+      p.start(); p.join()
+
   train(FLAGS.max_steps)
 
 
