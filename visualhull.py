@@ -81,7 +81,7 @@ def render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f):
 
 
 def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=1.):
-    os.makedirs(os.path.join(FLAGS.voxel_dir+"_dil{}".format(dilation), target), exist_ok=True)
+    os.makedirs(FLAGS.voxel_dir, exist_ok=True)
 
     # larger size requires larger images
     t_n, t_f = FLAGS.near, FLAGS.far
@@ -113,7 +113,7 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=
 
     voxel_s = ((voxel_s >= (voxel_r * thresh)) * (voxel_s > 0.)).astype(jnp.uint8)
 
-    np.save(os.path.join(FLAGS.voxel_dir+"_dil{}".format(dilation), target, "voxel.npy"), voxel_s)
+    np.save(os.path.join(FLAGS.voxel_dir, "voxel.npy"), voxel_s)
     print(voxel_s.dtype, voxel_s.shape, "\nshape done!")
 
     ### color
@@ -129,7 +129,7 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=
         jax.tree_map(lambda x: x.block_until_ready(), output)
         voxel_t, voxel_c = output
 
-    np.save(os.path.join(FLAGS.voxel_dir+"_dil{}".format(dilation), target, "voxel_color.npy"), voxel_c)
+    np.save(os.path.join(FLAGS.voxel_dir, "voxel_color.npy"), voxel_c)
     print(voxel_c.dtype, voxel_c.shape, "\ncolor done!")
 
     ### test
@@ -172,7 +172,7 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=
     for i in range(N):
         plt.subplot(6,N,i+1+N*5); plt.imshow(np.clip(pred_masks[i] - masks[i], 0, 1))
 
-    plt.savefig(os.path.join(FLAGS.voxel_dir+"_dil{}".format(dilation), target, "voxel.png"))
+    plt.savefig(os.path.join(FLAGS.voxel_dir, "voxel.png"))
     # plt.show()
     plt.close()
 
@@ -185,7 +185,7 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=
     #     frames.append(frame)
     # frames = [(np.array(frame) * 255.).astype(np.uint8) for frame in frames]
     # clip = mpy.ImageSequenceClip(frames, fps=10)
-    # clip.write_gif(os.path.join(FLAGS.voxel_dir, target, "voxel.gif"))
+    # clip.write_gif(os.path.join(FLAGS.voxel_dir, "voxel.gif"))
 
     print("test done!")
 
@@ -232,7 +232,6 @@ if __name__ == "__main__":
     FLAGS = flags.FLAGS
     utils.define_flags()
     flags.DEFINE_integer("vsize", 400, "voxel size")
-    flags.DEFINE_string("voxel_dir", "data/voxel", "voxel data directory.")
     flags.DEFINE_integer("dilation", 7, "dilation size")
     flags.DEFINE_float("thresh", 1., "threshold")
     config.parse_flags_with_absl()
