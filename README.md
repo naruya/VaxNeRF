@@ -71,7 +71,7 @@ python train.py \
 
 **VaxNeRF with hierarchical sampling**
 
-```
+```shell
 # hierarchical sampling needs more dilated voxel
 python visualhull.py \
     --config configs/demo \
