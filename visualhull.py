@@ -80,7 +80,7 @@ def render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f):
     return img
 
 
-def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=1.):
+def visualhull(FLAGS, dataset, test_dataset=None):
     os.makedirs(FLAGS.voxel_dir, exist_ok=True)
 
     # larger size requires larger images
@@ -106,15 +106,19 @@ def visualhull(FLAGS, dataset, test_dataset=None, target="", dilation=7, thresh=
             mask = np.sum(img, axis=2) != 3
             mask = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3,3)))
 
-        mask = cv2.dilate(mask.astype(np.uint8), np.ones((dilation,dilation)), iterations=1)
+        dil = FLAGS.dilation
+        mask = cv2.dilate(mask.astype(np.uint8), np.ones((dil,dil)), iterations=1)
         output = carve_voxel(o, d, mask, voxel_s, voxel_r, rsize, vsize, t_n, t_f)
         jax.tree_map(lambda x: x.block_until_ready(), output)
         voxel_s, voxel_r = output
 
-    voxel_s = ((voxel_s >= (voxel_r * thresh)) * (voxel_s > 0.)).astype(jnp.uint8)
+    voxel_s = ((voxel_s >= (voxel_r * FLAGS.thresh)) * (voxel_s > 0.)).astype(jnp.uint8)
 
     np.save(os.path.join(FLAGS.voxel_dir, "voxel.npy"), voxel_s)
     print(voxel_s.dtype, voxel_s.shape, "\nshape done!")
+
+    if not FLAGS.vhtest:
+      return None
 
     ### color
     voxel_c = device_put(jnp.zeros([vsize, vsize, vsize, 3]).astype(jnp.float32))
@@ -202,8 +206,6 @@ def main(unused_argv):
         def start(self):
             pass
 
-    target = FLAGS.data_dir.split("/")[-1]
-
     dataset = PureDataset("train", FLAGS)
     dataset.images = dataset.images.reshape(-1,800,800,FLAGS.num_rgb_channels)
     dataset.rays = dataset.rays._replace(
@@ -213,19 +215,22 @@ def main(unused_argv):
     dataset.rays = dataset.rays._replace(
         viewdirs=dataset.rays.viewdirs.reshape(-1,800,800,3))
 
-    test_dataset = PureDataset("test", FLAGS)
-    test_dataset.images = test_dataset.images.reshape(-1,800,800,FLAGS.num_rgb_channels)
-    test_dataset.rays = test_dataset.rays._replace(
-        origins=test_dataset.rays.origins.reshape(-1,800,800,3))
-    test_dataset.rays = test_dataset.rays._replace(
-        directions=test_dataset.rays.directions.reshape(-1,800,800,3))
-    test_dataset.rays = test_dataset.rays._replace(
-        viewdirs=test_dataset.rays.viewdirs.reshape(-1,800,800,3))
+    if FLAGS.vhtest:
+        test_dataset = PureDataset("test", FLAGS)
+        test_dataset.images = test_dataset.images.reshape(-1,800,800,FLAGS.num_rgb_channels)
+        test_dataset.rays = test_dataset.rays._replace(
+            origins=test_dataset.rays.origins.reshape(-1,800,800,3))
+        test_dataset.rays = test_dataset.rays._replace(
+            directions=test_dataset.rays.directions.reshape(-1,800,800,3))
+        test_dataset.rays = test_dataset.rays._replace(
+            viewdirs=test_dataset.rays.viewdirs.reshape(-1,800,800,3))
+    else:
+        test_dataset = None
 
     if FLAGS.dataset == "nsvf":
         utils.update_flags(FLAGS, no_nf=False)
 
-    visualhull(FLAGS, dataset, test_dataset, target, dilation=FLAGS.dilation, thresh=FLAGS.thresh)
+    visualhull(FLAGS, dataset, test_dataset)
 
 
 if __name__ == "__main__":
@@ -234,5 +239,6 @@ if __name__ == "__main__":
     flags.DEFINE_integer("vsize", 400, "voxel size")
     flags.DEFINE_integer("dilation", 7, "dilation size")
     flags.DEFINE_float("thresh", 1., "threshold")
+    flags.DEFINE_bool("vhtest", False, "do test or not")
     config.parse_flags_with_absl()
     app.run(main)
