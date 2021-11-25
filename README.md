@@ -114,12 +114,6 @@ python train.py \
   - Visualization of number of sampling points evaluated by MLP (VaxNeRF)
   - Automatic choice of the number of sampling points to be evaluated (VaxNeRF)
 
-
-## Acknowledgement
-We'd like to express deep thanks to the inventors of [NeRF](http://www.matthewtancik.com/nerf) and [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
-
-Have a good VaxNeRF'ed life!
-
 ## Citation
 
 Please use the following bibtex for citations:
@@ -147,3 +141,8 @@ and also cite the original [NeRF](http://www.matthewtancik.com/nerf) paper and [
   year = {2020},
 }
 ```
+
+## Acknowledgement
+We'd like to express deep thanks to the inventors of [NeRF](http://www.matthewtancik.com/nerf) and [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
+
+Have a good VaxNeRF'ed life!
