@@ -14,7 +14,7 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 
 ## Installation
 
-Please see the README of [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf). (or see below)
+Please see the README of [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
 
 
 ## Quick start
