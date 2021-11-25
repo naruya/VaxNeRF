@@ -129,7 +129,7 @@ Please use the following bibtex for citations:
 }
 ```
 
-and also cite the original NeRF paper and JaxNeRF implementation:
+and also cite the original [NeRF](http://www.matthewtancik.com/nerf) paper and [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf) implementation:
 
 ```
 @inproceedings{mildenhall2020nerf,
