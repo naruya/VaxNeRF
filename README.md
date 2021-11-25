@@ -2,9 +2,7 @@
 
 This is the official implementation of VaxNeRF (Voxel-Accelearated NeRF).
 
- * [Project Page](https://sites.google.com/view/vaxnerf/)
  * [Paper]() (comming soon!)
- * [Video]() (comming soon!)
 
 This codebase is implemented using [JAX](https://github.com/google/jax),
 building on [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
