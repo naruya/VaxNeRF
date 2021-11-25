@@ -1,15 +1,24 @@
 # VaxNeRF
 
+### [Paper]()
+
 This is the official implementation of VaxNeRF (Voxel-Accelearated NeRF).
 
- * [Paper]() (comming soon!)
+<div align="center">
+<img src="https://user-images.githubusercontent.com/23403885/143438536-03946310-ca85-4b53-afb9-a118293eda1d.PNG" width="50%">
+</div>
+
 
 This codebase is implemented using [JAX](https://github.com/google/jax),
 building on [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
 
 VaxNeRF provides very fast training and slightly higher scores compared to original (Jax)NeRF!!
 
-![comparison](https://user-images.githubusercontent.com/23403885/142990613-73889333-ec75-41f4-8c99-e568da7a6e1a.png)
+<div align="center">
+<img src="https://user-images.githubusercontent.com/23403885/142990613-73889333-ec75-41f4-8c99-e568da7a6e1a.png" width="90%">
+</div>
+
+![fast](https://user-images.githubusercontent.com/23403885/143439496-5005831f-315c-48b9-a0d8-084be72470c3.PNG)
 
 
 ## Installation
