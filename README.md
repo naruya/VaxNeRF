@@ -118,7 +118,7 @@ python train.py \
 ## Acknowledgement
 We'd like to express deep thanks to the inventors of [NeRF](http://www.matthewtancik.com/nerf) and [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
 
-Have a good VaxNeRF life!
+Have a good VaxNeRF'ed life!
 
 ---
 
