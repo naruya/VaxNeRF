@@ -1,6 +1,6 @@
 # VaxNeRF
 
-### [Paper]() | [Google Colab](https://colab.research.google.com/drive/1Hf5-2eI_E7954iThqm4_5Jsa3YBNnvFn?usp=sharing) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Hf5-2eI_E7954iThqm4_5Jsa3YBNnvFn?usp=sharing)
+### [Paper](http://arxiv.org/abs/2111.13112) | [Google Colab](https://colab.research.google.com/drive/1Hf5-2eI_E7954iThqm4_5Jsa3YBNnvFn?usp=sharing) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Hf5-2eI_E7954iThqm4_5Jsa3YBNnvFn?usp=sharing)
 
 This is the official implementation of VaxNeRF (Voxel-Accelearated NeRF).
 
