@@ -217,7 +217,7 @@ def train(max_steps, check=False):
     # multi-host evaluation, all hosts need to run inference even though we
     # only use host 0 to record results.
     if jax.host_id() == 0:
-      if step % FLAGS.print_every == 0:
+      if step % FLAGS.print_every == 0 or step == max_steps:
         summary_writer.scalar("train_loss", stats.loss[0], step)
         summary_writer.scalar("train_psnr", stats.psnr[0], step)
         summary_writer.scalar("train_loss_coarse", stats.loss_c[0], step)
