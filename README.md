@@ -79,7 +79,7 @@ python train.py \
 **VaxNeRF with hierarchical sampling**
 
 ```shell
-# hierarchical sampling needs more dilated voxel
+# small `num_xx_samples` needs more dilated voxel (see our paper)
 python visualhull.py \
     --config configs/demo \
     --data_dir data/nerf_synthetic/lego \
