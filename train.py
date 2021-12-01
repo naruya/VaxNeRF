@@ -31,6 +31,7 @@ from jax import device_put
 import jax.numpy as jnp
 import numpy as np
 import os
+from multiprocessing import Process
 
 from nerf import datasets
 from nerf import models
@@ -151,7 +152,7 @@ def train(max_steps, check=False):
   voxel, len_c, len_f = None, 0, 0
   if not FLAGS.voxel_dir == "":
     voxel = device_put(jnp.load(os.path.join(FLAGS.voxel_dir, "voxel.npy")))
-    if not check:
+    if os.path.exists(os.path.join(FLAGS.train_dir, "len_inp.txt")):
       with open(os.path.join(FLAGS.train_dir, "len_inp.txt"), 'r') as f:
         len_c, len_f = map(int, f.readline().split())
         FLAGS.len_inpc, FLAGS.len_inpf = int(len_c*1.2), int(len_f*1.2)
@@ -299,10 +300,14 @@ def main(unused_argv):
   ### Vax
   if not FLAGS.voxel_dir == "":
     if not os.path.exists(os.path.join(FLAGS.train_dir, "len_inp.txt")):
-      # avoid memory leaks
-      from multiprocessing import Process
-      p = Process(target=train, args=(1000,True))
-      p.start(); p.join()
+      # check len_inpc
+      p = Process(target=train, args=(500,True))
+      p.start(); p.join()  # avoid memory leaks
+
+      # check len_inpf
+      if FLAGS.num_fine_samples > 0:
+        p = Process(target=train, args=(500,True))
+        p.start(); p.join()  # avoid memory leaks
 
   train(FLAGS.max_steps)
 
