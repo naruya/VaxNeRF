@@ -2,17 +2,26 @@
 
 ### [Paper](http://arxiv.org/abs/2111.13112) | [Google Colab](https://colab.research.google.com/drive/1Hf5-2eI_E7954iThqm4_5Jsa3YBNnvFn?usp=sharing) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Hf5-2eI_E7954iThqm4_5Jsa3YBNnvFn?usp=sharing)
 
-This is the official implementation of VaxNeRF (Voxel-Accelearated NeRF).
+This is the official implementation of VaxNeRF (Voxel-Accelearated NeRF).  
+VaxNeRF provides very fast training and slightly higher scores compared to original (Jax)NeRF!!
 
 <div align="center">
 <img src="https://user-images.githubusercontent.com/23403885/143438536-03946310-ca85-4b53-afb9-a118293eda1d.PNG" width="50%">
 </div>
 
 
-This codebase is implemented using [JAX](https://github.com/google/jax),
-building on [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
+### Updates!
 
-VaxNeRF provides very fast training and slightly higher scores compared to original (Jax)NeRF!!
+- **December 2, 2021**
+  - We Vax'ed PlenOctrees! You can train NeRF-SH about 5x faster.
+  - See -> https://github.com/naruya/plenoctree
+
+## 
+
+<!--　This codebase is implemented using [JAX](https://github.com/google/jax),
+building on [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf). -->
+
+
 
 <div align="center">
 <img src="https://user-images.githubusercontent.com/23403885/142990613-73889333-ec75-41f4-8c99-e568da7a6e1a.png" width="90%">
