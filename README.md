@@ -137,13 +137,11 @@ python train.py \
 Please use the following bibtex for citations:
 
 ```
-@misc{kondo2021vaxnerf,
-      title={VaxNeRF: Revisiting the Classic for Voxel-Accelerated Neural Radiance Field}, 
-      author={Naruya Kondo and Yuya Ikeda and Andrea Tagliasacchi and Yutaka Matsuo and Yoichi Ochiai and Shixiang Shane Gu},
-      year={2021},
-      eprint={2111.13112},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+@article{kondo2021vaxnerf,
+  title={VaxNeRF: Revisiting the Classic for Voxel-Accelerated Neural Radiance Field},
+  author={Kondo, Naruya and Ikeda, Yuya and Tagliasacchi, Andrea and Matsuo, Yutaka and Ochiai, Yoichi and Gu, Shixiang Shane},
+  journal={arXiv preprint arXiv:2111.13112},
+  year={2021}
 }
 ```
 
