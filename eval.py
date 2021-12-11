@@ -106,6 +106,33 @@ def main(unused_argv):
   # last_step = 0
   out_dir = path.join(FLAGS.train_dir,
                       "path_renders" if FLAGS.render_path else "test_preds")
+  if FLAGS.save_output and (not utils.isdir(out_dir)):
+    utils.makedirs(out_dir)
+
+  # eval gif
+  if FLAGS.save_gif:
+    import moviepy.editor as mpy
+    from tqdm import tqdm
+    state = checkpoints.restore_checkpoint(FLAGS.train_dir, state)
+    frames = []
+    for idx in tqdm(range(dataset.size)):
+      batch = next(dataset)
+      pred_color, _, _ = utils.render_image(
+          functools.partial(render_pfn, state.optimizer.target),
+          batch["rays"],
+          rng,
+          FLAGS.dataset == "llff",
+          chunk=FLAGS.chunk)
+      if jax.host_id() == 0:  # Only record via host 0.
+        frames.append(pred_color)
+    if jax.host_id() == 0:  # Only record via host 0.
+      frames = [(np.clip(np.array(frame), 0., 1.) * 255.).astype(np.uint8) for frame in frames]
+      clip = mpy.ImageSequenceClip(frames, fps=10)
+      clip.write_gif(path.join(out_dir, "voxel.gif"))
+    print("done!")
+    return None
+
+  # eval main
   if not FLAGS.eval_once:
     summary_writer = tensorboard.SummaryWriter(
         path.join(FLAGS.train_dir, "eval"))
@@ -138,8 +165,6 @@ def main(unused_argv):
     # step = int(state.optimizer.state.step)
     # if step <= last_step:
     #   continue
-    if FLAGS.save_output and (not utils.isdir(out_dir)):
-      utils.makedirs(out_dir)
     psnr_values = []
     ssim_values = []
     # lpips_values = []

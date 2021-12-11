@@ -177,6 +177,7 @@ def define_flags():
       "checkpoints if there's any.")
   flags.DEFINE_bool("save_output", True,
                     "save predicted images to disk if True.")
+  flags.DEFINE_bool("save_gif", True, "save gif.")
   flags.DEFINE_integer(
       "chunk", 8192,
       "the size of chunks for evaluation inferences, set to the value that"
