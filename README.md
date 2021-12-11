@@ -47,7 +47,7 @@ python visualhull.py \
     --voxel_dir data/voxel_dil7/lego \
     --dilation 7 \
     --thresh 1. \
-    --alpha_bkgd True
+    --alpha_bkgd
 
 # train VaxNeRF
 python train.py \
@@ -95,7 +95,7 @@ python visualhull.py \
     --voxel_dir data/voxel_dil47/lego \
     --dilation 47 \
     --thresh 1. \
-    --alpha_bkgd True
+    --alpha_bkgd
 
 # train VaxNeRF
 python train.py \
@@ -114,7 +114,8 @@ python train.py \
 **Visual Hull**
 
 - Use `--dilation 11` / `--dilation 51` for NSVF-Synthetic dataset for training VaxNeRF without / with hierarchical sampling.
-- The following options were used for the `Lifestyle`, `Spaceship`, `Steamtrain` scenes (included in the NSVF dataset) because these datasets do not have alpha channel.
+- The following options were used
+- Since the `Lifestyle`, `Spaceship`, `Steamtrain` scenes (included in the NSVF dataset) do not have alpha channel, please use following options **and** remove `--alpha_bkgd` option.
   - Lifestyle: `--thresh 0.95`, Spaceship: `--thresh 0.9`, Steamtrain: `--thresh 0.95`
 
 **NeRFs**
