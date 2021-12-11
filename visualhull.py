@@ -117,7 +117,7 @@ def visualhull(FLAGS, dataset, test_dataset=None):
     np.save(os.path.join(FLAGS.voxel_dir, "voxel.npy"), voxel_s)
     print(voxel_s.dtype, voxel_s.shape, "\nshape done!")
 
-    if not FLAGS.vhtest:
+    if not FLAGS.test:
       return None
 
     ### color
@@ -180,16 +180,16 @@ def visualhull(FLAGS, dataset, test_dataset=None):
     # plt.show()
     plt.close()
 
-    # import moviepy.editor as mpy
-    # frames = []
-    # for i in tqdm(range(test_dataset.size)):
-    #     o = test_dataset.rays.origins[i]
-    #     d = test_dataset.rays.directions[i]
-    #     frame = render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f).block_until_ready()
-    #     frames.append(frame)
-    # frames = [(np.array(frame) * 255.).astype(np.uint8) for frame in frames]
-    # clip = mpy.ImageSequenceClip(frames, fps=10)
-    # clip.write_gif(os.path.join(FLAGS.voxel_dir, "voxel.gif"))
+    import moviepy.editor as mpy
+    frames = []
+    for i in tqdm(range(test_dataset.size)):
+        o = test_dataset.rays.origins[i]
+        d = test_dataset.rays.directions[i]
+        frame = render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f).block_until_ready()
+        frames.append(frame)
+    frames = [(np.array(frame) * 255.).astype(np.uint8) for frame in frames]
+    clip = mpy.ImageSequenceClip(frames, fps=10)
+    clip.write_gif(os.path.join(FLAGS.voxel_dir, "voxel.gif"))
 
     print("test done!")
 
@@ -215,7 +215,7 @@ def main(unused_argv):
     dataset.rays = dataset.rays._replace(
         viewdirs=dataset.rays.viewdirs.reshape(-1,800,800,3))
 
-    if FLAGS.vhtest:
+    if FLAGS.test:
         test_dataset = PureDataset("test", FLAGS)
         test_dataset.images = test_dataset.images.reshape(-1,800,800,FLAGS.num_rgb_channels)
         test_dataset.rays = test_dataset.rays._replace(
@@ -239,6 +239,6 @@ if __name__ == "__main__":
     flags.DEFINE_integer("vsize", 400, "voxel size")
     flags.DEFINE_integer("dilation", 7, "dilation size")
     flags.DEFINE_float("thresh", 1., "threshold")
-    flags.DEFINE_bool("vhtest", False, "do test or not")
+    flags.DEFINE_bool("test", False, "do test or not")
     config.parse_flags_with_absl()
     app.run(main)
