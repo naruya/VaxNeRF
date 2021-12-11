@@ -127,7 +127,7 @@ def main(unused_argv):
         frames.append(pred_color)
     if jax.host_id() == 0:  # Only record via host 0.
       frames = [(np.clip(np.array(frame), 0., 1.) * 255.).astype(np.uint8) for frame in frames]
-      clip = mpy.ImageSequenceClip(frames, fps=10)
+      clip = mpy.ImageSequenceClip(frames, fps=20)
       clip.write_gif(path.join(out_dir, "voxel.gif"))
     print("done!")
     return None

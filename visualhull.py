@@ -80,6 +80,16 @@ def render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f):
     return img
 
 
+# denoising sphere
+def get_sphere(vsize, margin=5):
+    voxel_sp = np.zeros([vsize, vsize, vsize]).astype(np.uint8)
+    for z in range(margin, vsize-margin):
+        z = z - vsize//2
+        zr = int((((vsize//2-margin)**2 - z**2) ** 0.5))
+        cv2.circle(voxel_sp[z + vsize//2], (vsize//2, vsize//2), zr, (1,), thickness=-1)
+    return voxel_sp.astype(np.bool)
+
+
 def visualhull(FLAGS, dataset, test_dataset=None):
     os.makedirs(FLAGS.voxel_dir, exist_ok=True)
 
@@ -113,6 +123,7 @@ def visualhull(FLAGS, dataset, test_dataset=None):
         voxel_s, voxel_r = output
 
     voxel_s = ((voxel_s >= (voxel_r * FLAGS.thresh)) * (voxel_s > 0.)).astype(jnp.uint8)
+    voxel_s = voxel_s * get_sphere(FLAGS.vsize, FLAGS.margin)
 
     np.save(os.path.join(FLAGS.voxel_dir, "voxel.npy"), voxel_s)
     print(voxel_s.dtype, voxel_s.shape, "\nshape done!")
@@ -180,6 +191,9 @@ def visualhull(FLAGS, dataset, test_dataset=None):
     # plt.show()
     plt.close()
 
+    if not FLAGS.save_gif:
+        return None
+
     import moviepy.editor as mpy
     frames = []
     for i in tqdm(range(test_dataset.size)):
@@ -188,7 +202,7 @@ def visualhull(FLAGS, dataset, test_dataset=None):
         frame = render_voxel(voxel_s, voxel_c, o, d, rsize, vsize, t_n, t_f).block_until_ready()
         frames.append(frame)
     frames = [(np.array(frame) * 255.).astype(np.uint8) for frame in frames]
-    clip = mpy.ImageSequenceClip(frames, fps=10)
+    clip = mpy.ImageSequenceClip(frames, fps=20)
     clip.write_gif(os.path.join(FLAGS.voxel_dir, "voxel.gif"))
 
     print("test done!")
@@ -227,8 +241,7 @@ def main(unused_argv):
     else:
         test_dataset = None
 
-    if FLAGS.dataset == "nsvf":
-        utils.update_flags(FLAGS, no_nf=False)
+    utils.update_flags(FLAGS, no_nf=not "nsvf" in FLAGS.config.lower())
 
     visualhull(FLAGS, dataset, test_dataset)
 
@@ -239,6 +252,7 @@ if __name__ == "__main__":
     flags.DEFINE_integer("vsize", 400, "voxel size")
     flags.DEFINE_integer("dilation", 7, "dilation size")
     flags.DEFINE_float("thresh", 1., "threshold")
+    flags.DEFINE_integer("margin", 40, "margin")
     flags.DEFINE_bool("test", False, "do test or not")
     config.parse_flags_with_absl()
     app.run(main)
