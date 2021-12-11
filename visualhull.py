@@ -121,7 +121,7 @@ def visualhull(FLAGS, dataset, test_dataset=None):
       return None
 
     ### color
-    voxel_c = device_put(jnp.zeros([vsize, vsize, vsize, 3]).astype(jnp.float32))
+    voxel_c = device_put(jnp.ones([vsize, vsize, vsize, 3]).astype(jnp.float32))
     voxel_t = device_put(jnp.zeros([vsize, vsize, vsize]).astype(jnp.uint16) + (vsize+1))
 
     for idx in tqdm(range(dataset.size)):
