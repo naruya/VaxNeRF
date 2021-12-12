@@ -50,9 +50,6 @@ building on [JaxNeRF](https://github.com/google-research/google-research/tree/ma
 <img src="https://user-images.githubusercontent.com/23403885/142990613-73889333-ec75-41f4-8c99-e568da7a6e1a.png" width="90%">
 </div>
 
-![fast](https://user-images.githubusercontent.com/23403885/143439496-5005831f-315c-48b9-a0d8-084be72470c3.PNG)
-
-
 ## Installation
 
 Please see the README of [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
