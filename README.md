@@ -9,6 +9,14 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 <img src="https://user-images.githubusercontent.com/23403885/143438536-03946310-ca85-4b53-afb9-a118293eda1d.PNG" width="50%">
 </div>
 
+### Updates!
+
+- **December 2, 2021**
+  - We Vax'ed PlenOctrees! You can train NeRF-SH about 5x faster.
+  - See -> https://github.com/naruya/plenoctree
+
+## 
+
 <table>
 <td colspan="4" align="center"><b>Visual Hull (10sec)</b></td>
 <tr>
@@ -32,19 +40,7 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 <td><img src="https://i.gyazo.com/f6496fd576fefea2552f87f0a36b7894.gif"></td>
 </table>
 
-
-### Updates!
-
-- **December 2, 2021**
-  - We Vax'ed PlenOctrees! You can train NeRF-SH about 5x faster.
-  - See -> https://github.com/naruya/plenoctree
-
 ## 
-
-<!--　This codebase is implemented using [JAX](https://github.com/google/jax),
-building on [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf). -->
-
-
 
 <div align="center">
 <img src="https://user-images.githubusercontent.com/23403885/142990613-73889333-ec75-41f4-8c99-e568da7a6e1a.png" width="90%">
