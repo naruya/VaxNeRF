@@ -114,15 +114,19 @@ def main(unused_argv):
     import moviepy.editor as mpy
     from tqdm import tqdm
     state = checkpoints.restore_checkpoint(FLAGS.train_dir, state)
+    step = int(state.optimizer.state.step)
     frames = []
     for idx in tqdm(range(dataset.size)):
       batch = next(dataset)
-      pred_color, _, _ = utils.render_image(
+      pred_color, pred_disp, pred_acc = utils.render_image(
           functools.partial(render_pfn, state.optimizer.target),
           batch["rays"],
           rng,
           FLAGS.dataset == "llff",
           chunk=FLAGS.chunk)
+      utils.save_img(pred_color, path.join(out_dir, "rgb_{:08d}-{:03d}.png".format(step, idx)))
+      utils.save_img(pred_disp[Ellipsis, 0],
+                     path.join(out_dir, "disp_{:08d}-{:03d}.png".format(step, idx)))
       if jax.host_id() == 0:  # Only record via host 0.
         frames.append(pred_color)
     if jax.host_id() == 0:  # Only record via host 0.

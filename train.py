@@ -285,7 +285,7 @@ def train(max_steps, check=False):
   if FLAGS.max_steps % FLAGS.save_every != 0:
     state = jax.device_get(jax.tree_map(lambda x: x[0], state))
     checkpoints.save_checkpoint(
-        FLAGS.train_dir, state, int(FLAGS.max_steps), keep=100)
+        FLAGS.train_dir, state, int(step), keep=100)
 
   ### Vax
   if check:
