@@ -9,6 +9,29 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 <img src="https://user-images.githubusercontent.com/23403885/143438536-03946310-ca85-4b53-afb9-a118293eda1d.PNG" width="50%">
 </div>
 
+<table>
+<td colspan="4" align="center"><b>Visual Hull (10sec)</b></td>
+<tr>
+<td><img src="https://i.gyazo.com/1342ac36ff033a8e74782cd91b7c4239.gif"></td>
+<td><img src="https://i.gyazo.com/2cc6adc464f1e003cf3075342d9c8b18.gif"></td>
+<td><img src="https://i.gyazo.com/eff9e2fb34dbbf9a258d96644804b510.gif"></td>
+<td><img src="https://i.gyazo.com/9b8c7ec37df96a01c84b369564101047.gif"></td>
+</tr>
+<td colspan="4" align="center"><b>NeRF (10min)</b></td>
+</tr>
+<td><img src="https://i.gyazo.com/a1ce01462f9c74b978084694a757b290.gif"></td>
+<td><img src="https://i.gyazo.com/7367778a2edb41b8ec422768da552b7c.gif"></td>
+<td><img src="https://i.gyazo.com/03b161cc28fae6698617f835ad84dcfa.gif"></td>
+<td><img src="https://i.gyazo.com/ae8eb3c89c597817b493fca9f1c4d028.gif"></td>
+</tr>
+<td colspan="4" align="center"><b>VaxNeRF (10min)</b></td>
+</tr>
+<td><img src="https://i.gyazo.com/e006344d4132fbb2d1a0865f10f54a3c.gif"></td>
+<td><img src="https://i.gyazo.com/2e7cbf2d8f6cc201cb0f8a049448626b.gif"></td>
+<td><img src="https://i.gyazo.com/283238f208cb461b4ea915a4a758f357.gif"></td>
+<td><img src="https://i.gyazo.com/f6496fd576fefea2552f87f0a36b7894.gif"></td>
+</table>
+
 
 ### Updates!
 
