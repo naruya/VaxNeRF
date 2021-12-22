@@ -266,7 +266,7 @@ if __name__ == "__main__":
     utils.define_flags()
     flags.DEFINE_integer("vsize", 400, "voxel size")
     flags.DEFINE_integer("dilation", 7, "dilation size")
-    flags.DEFINE_integer("pooling", 7, "pooling size")
+    flags.DEFINE_integer("pooling", 0, "pooling size")
     flags.DEFINE_float("thresh", 1., "threshold")
     flags.DEFINE_integer("margin", 40, "margin")
     flags.DEFINE_bool("test", False, "do test or not")
