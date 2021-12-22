@@ -9,6 +9,7 @@ from jax import jit
 from jax import device_put
 from functools import partial
 import jax.numpy as jnp
+import flax
 import os
 import cv2
 import numpy as np
@@ -124,6 +125,20 @@ def visualhull(FLAGS, dataset, test_dataset=None):
 
     voxel_s = ((voxel_s >= (voxel_r * FLAGS.thresh)) * (voxel_s > 0.)).astype(jnp.uint8)
     voxel_s = voxel_s * get_sphere(FLAGS.vsize, FLAGS.margin)
+
+
+    class Pool(flax.linen.Module):
+        @flax.linen.compact
+        def __call__(self, x):
+            k = FLAGS.pooling
+            x = flax.linen.max_pool(x, (k,k,k), strides=None, padding='SAME')
+            return x
+
+    model = Pool()
+    key = jax.random.split(jax.random.PRNGKey(0), 1)[0]
+    params = model.init(key, voxel_s[...,None])
+    voxel_s = model.apply(params, voxel_s[...,None])[...,0]
+
 
     np.save(os.path.join(FLAGS.voxel_dir, "voxel.npy"), voxel_s)
     print(voxel_s.dtype, voxel_s.shape, "\nshape done!")
@@ -251,6 +266,7 @@ if __name__ == "__main__":
     utils.define_flags()
     flags.DEFINE_integer("vsize", 400, "voxel size")
     flags.DEFINE_integer("dilation", 7, "dilation size")
+    flags.DEFINE_integer("pooling", 7, "pooling size")
     flags.DEFINE_float("thresh", 1., "threshold")
     flags.DEFINE_integer("margin", 40, "margin")
     flags.DEFINE_bool("test", False, "do test or not")
