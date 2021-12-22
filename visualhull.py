@@ -126,19 +126,19 @@ def visualhull(FLAGS, dataset, test_dataset=None):
     voxel_s = ((voxel_s >= (voxel_r * FLAGS.thresh)) * (voxel_s > 0.)).astype(jnp.uint8)
     voxel_s = voxel_s * get_sphere(FLAGS.vsize, FLAGS.margin)
 
+    if FLAGS.pooling > 0:
 
-    class Pool(flax.linen.Module):
-        @flax.linen.compact
-        def __call__(self, x):
-            k = FLAGS.pooling
-            x = flax.linen.max_pool(x, (k,k,k), strides=None, padding='SAME')
-            return x
+        class Pool(flax.linen.Module):
+            @flax.linen.compact
+            def __call__(self, x):
+                k = FLAGS.pooling
+                x = flax.linen.max_pool(x, (k,k,k), strides=None, padding='SAME')
+                return x
 
-    model = Pool()
-    key = jax.random.split(jax.random.PRNGKey(0), 1)[0]
-    params = model.init(key, voxel_s[...,None])
-    voxel_s = model.apply(params, voxel_s[...,None])[...,0]
-
+        model = Pool()
+        key = jax.random.split(jax.random.PRNGKey(0), 1)[0]
+        params = model.init(key, voxel_s[...,None])
+        voxel_s = model.apply(params, voxel_s[...,None])[...,0]
 
     np.save(os.path.join(FLAGS.voxel_dir, "voxel.npy"), voxel_s)
     print(voxel_s.dtype, voxel_s.shape, "\nshape done!")
