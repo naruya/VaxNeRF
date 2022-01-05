@@ -11,9 +11,13 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 
 ### Updates!
 
+- **December 26, 2021**
+  - We Vax'ed MipNeRF!
+  - We achieved roughly 28 times faster training in terms of producing the final accuracy of the original NeRF.
+  - See -> https://github.com/naruya/mipnerf
 - **December 2, 2021**
   - We Vax'ed PlenOctrees! You can train NeRF-SH about 5x faster.
-  - See -> https://github.com/naruya/plenoctree
+  - https://github.com/naruya/plenoctree (out of maintenance)
 
 ## 
 
@@ -43,7 +47,9 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 ## 
 
 <div align="center">
-<img src="https://user-images.githubusercontent.com/23403885/142990613-73889333-ec75-41f4-8c99-e568da7a6e1a.png" width="90%">
+<img src="https://user-images.githubusercontent.com/23403885/147459802-8871f92f-923d-437c-a0a8-79b6077985ab.png" width="90%">
+<br clear="left">
+(The results of <a href="https://github.com/naruya/mipnerf">Vax-MipNeRF</a> are also included in this figure.)
 </div>
 
 ## Installation
