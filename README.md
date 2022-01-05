@@ -23,7 +23,7 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 
 
 <table>
-<td colspan="4" align="center"><b>Visual Hull (10sec)</b></td>
+<td colspan="4" align="center"><b>Visual Hull (1sec)</b></td>
 <tr>
 <td><div align="center"><img src="https://i.gyazo.com/1342ac36ff033a8e74782cd91b7c4239.gif" width="80%"></div></td>
 <td><div align="center"><img src="https://i.gyazo.com/2cc6adc464f1e003cf3075342d9c8b18.gif" width="80%"></div></td>
