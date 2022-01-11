@@ -64,6 +64,17 @@ VaxNeRF provides very fast training and slightly higher scores compared to origi
 
 Please see the README of [JaxNeRF](https://github.com/google-research/google-research/tree/master/jaxnerf).
 
+The jax and jaxlib versions that we have tested are as follows.
+
+```
+jax                     0.2.24
+jaxlib                  0.1.69+cuda111
+```
+
+```
+jax                     0.2.17
+jaxlib                  0.1.65+cuda110
+```
 
 ## Quick start
 
